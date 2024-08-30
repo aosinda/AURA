@@ -20,7 +20,6 @@ from knowledge_storm.storm_wiki.modules.callback import BaseCallbackHandler
 from knowledge_storm.utils import truncate_filename
 from stoc import stoc
 
-
 class DemoFileIOHelper():
     @staticmethod
     def read_structure_to_dict(articles_root_path):
@@ -318,18 +317,18 @@ class DemoUIHelper():
         return {
             "card": {
                 "width": "100%",
-                "height": "116px",
+                "height": "250px",
                 "max-width": "640px",
                 "background-color": "#FFFFF",
                 "border": "1px solid #CCC",
                 "padding": "20px",
                 "border-radius": "5px",
-                "border-left": f"0.5rem solid {boarder_color}",
+                #"border-left": f"0.5rem solid {boarder_color}",
                 "box-shadow": "0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15)",
                 "margin": "0px"
             },
             "title": {
-                "white-space": "nowrap",
+                "white-space": "normal",
                 "overflow": "hidden",
                 "text-overflow": "ellipsis",
                 "font-size": "17px",
@@ -339,7 +338,7 @@ class DemoUIHelper():
                 "font-weight": "normal"
             },
             "text": {
-                "white-space": "nowrap",
+                "white-space": "normal",
                 "overflow": "hidden",
                 "text-overflow": "ellipsis",
                 "font-size": "25px",
