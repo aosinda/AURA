@@ -22,26 +22,27 @@ class Storylines(BaseModel):
 
 
 storyline_prompt_template = """
-    A research abstract or document has high newsworthiness if it is relevant to contemporary issues in society.
-    A research abstract or document has high newsworthiness if it potentially impacts many people in society in
-    positive or negative ways. A research abstract or document has high newsworthiness if it has potential for controversy.
-    A research abstract or document has high newsworthiness if it can be easily understood by a general audience, and this
-    counts two times as much as other newsworthiness criteria. Rate the newsworthiness of the following research
-    abstracts, articles, or documents by providing a numeric rating on a scale from 1 to 5 where 1 is a low newsworthiness rating and 5
-    is a high newsworthiness rating:
+A research abstract or document has high newsworthiness if it is relevant to contemporary issues in society. 
+A research abstract or document has high newsworthiness if it potentially impacts many people in society in 
+positive or negative ways. A research abstract or document has high newsworthiness if it has potential for controversy. 
+A research abstract or document has high newsworthiness if it can be easily understood by a general audience, and this 
+counts two times as much as other newsworthiness criteria. 
+
+**The target audience for the storylines should be everyday people, meaning that the explanations must avoid technical jargon, 
+should be clear, and easily understandable by a general audience. The language should be accessible to people without specialized knowledge.**
+
+Rate the newsworthiness of the following research abstracts, articles, or documents by providing a numeric rating on a scale 
+from 1 to 5 where 1 is a low newsworthiness rating and 5 is a high newsworthiness rating:
 
 
+{context}
 
-    {context}
-
-
-
-    Then I want you to provide me with three storylines based on these research papers, articles, or documents. The storylines are related
-    to high newsworthiness. For each storyline, provide the following:
-    1. The storyline option.
-    2. An elaboration on the storyline, including what makes it newsworthy or any other angles that should be explored in relation to this storyline.
-    Only output the three storylines with their elaborations.
-    """
+Then I want you to provide me with three storylines based on these research papers, articles, or documents. The storylines are related
+to high newsworthiness. For each storyline, provide the following:
+1. The storyline option.
+2. An elaboration on the storyline, including what makes it newsworthy or any other angles that should be explored in relation to this storyline.
+Only output the three storylines with their elaborations.
+"""
 
 
 
