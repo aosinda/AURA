@@ -26,7 +26,7 @@ def handle_uploaded_file(uploaded_file):
     return None
 
 def display_storylines(storylines):
-    st.markdown("<p style='font-size: 18px; font-weight: bold;'>Here are three possible storylines. Please chose one, so AURA can make a thorough research</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 18px; font-weight: bold;'>Here are three possible storylines. Please choose one, so AURA can make a thorough research</p>", unsafe_allow_html=True)
     for idx, storyline in enumerate([storylines.storyline_1, storylines.storyline_2, storylines.storyline_3], 1):
         st.write(f"**Storyline {idx}:**")
         st.write(f"- **Option:** {storyline.storyline_option}")
@@ -110,6 +110,8 @@ def create_new_article_page():
 
     if st.session_state.get("selected_storyline_option", "").strip() and st.session_state.get("page3_write_article_state") == "pre_writing":
         current_working_dir = os.path.join(demo_util.get_demo_dir(), "DEMO_WORKING_DIR")
+        st.write(f"Selected storyline: {st.session_state['selected_storyline_option']}")
+        st.write(f"Topic for research: {st.session_state['selected_storyline_elaboration']}")
         if not os.path.exists(current_working_dir):
             os.makedirs(current_working_dir)
 
@@ -122,8 +124,12 @@ def create_new_article_page():
 
         with status:
             try:
+                # Insert the st.write() statement here to debug the topic
+                st.write(f"Topic for research: {st.session_state['selected_storyline_elaboration']}")
+
+              
                 st.session_state["runner"].run(
-                    topic=st.session_state["page3_topic"],
+                    topic=st.session_state["selected_storyline_elaboration"],
                     do_research=True,
                     do_generate_outline=True,
                     do_generate_article=False,
@@ -132,17 +138,13 @@ def create_new_article_page():
                 )
 
                 if "page3_topic_name_cleaned" not in st.session_state:
-                    st.session_state["page3_topic_name_cleaned"] = st.session_state["page3_topic"].replace(' ', '_').replace('/', '_')
+                    st.session_state["page3_topic_name_cleaned"] = st.session_state["selected_storyline_elaboration"].replace(' ', '_').replace('/', '_')
 
                 conversation_log_path = os.path.join(st.session_state["page3_current_working_dir"], st.session_state["page3_topic_name_cleaned"], "conversation_log.json")
-
-                if os.path.exists(conversation_log_path):
-                    demo_util._display_persona_conversations(DemoFileIOHelper.read_json_file(conversation_log_path))
-                else:
-                    st.error("Conversation log not found.")
-
+                demo_util._display_persona_conversations(DemoFileIOHelper.read_json_file(conversation_log_path))
                 st.session_state["page3_write_article_state"] = "final_writing"
                 status.update(label="Brainstorming complete!", state="complete")
+
             except Exception as e:
                 st.error(f"An error occurred during pre-writing: {e}")
                 traceback.print_exc()
@@ -150,8 +152,10 @@ def create_new_article_page():
     if st.session_state["page3_write_article_state"] == "final_writing":
         with st.status("Compiling the final article... (This may take 4-5 minutes.)") as status:
             try:
+                #debug
+                print(f"Topic before final writing: {st.session_state['selected_storyline_elaboration']}")
                 st.session_state["runner"].run(
-                    topic=st.session_state["page3_topic"],
+                    topic=st.session_state["selected_storyline_elaboration"],
                     do_research=False,
                     do_generate_outline=False,
                     do_generate_article=True,

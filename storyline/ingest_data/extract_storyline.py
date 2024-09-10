@@ -23,9 +23,14 @@ A research abstract or document has high newsworthiness if it is relevant to con
 A research abstract or document has high newsworthiness if it potentially impacts many people in society in 
 positive or negative ways. A research abstract or document has high newsworthiness if it has potential for controversy. 
 A research abstract or document has high newsworthiness if it can be easily understood by a general audience, and this 
-counts two times as much as other newsworthiness criteria. Rate the newsworthiness of the following research 
-abstracts, articles, or documents by providing a numeric rating on a scale from 1 to 5 where 1 is a low newsworthiness rating and 5 
-is a high newsworthiness rating:
+counts two times as much as other newsworthiness criteria. 
+
+**The target audience for the storylines should be everyday people, meaning that the explanations must avoid technical jargon, 
+should be clear, and easily understandable by a general audience. The language should be accessible to people without specialized knowledge.**
+
+Rate the newsworthiness of the following research abstracts, articles, or documents by providing a numeric rating on a scale 
+from 1 to 5 where 1 is a low newsworthiness rating and 5 is a high newsworthiness rating:
+
 
 {context}
 
