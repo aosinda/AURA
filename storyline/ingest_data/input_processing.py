@@ -54,39 +54,6 @@ def save_uploaded_file(uploaded_file, save_path):
     return save_path
 
 
-def extract_text_from_pdf_Rscript(pdf_path):
-    '''
-    Helper function to extract plain text from .doc files
-
-    :param pdf_path: path to .pdf file to be extracted
-    :return: string of extracted text
-    '''
-    file_path = ""
-    try:
-        if isinstance(pdf_path, io.BytesIO):
-            file_path = "/tmp/" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + ".pdf"
-            with open(file_path, "wb") as outfile:
-                # Copy the BytesIO stream to the output file
-                outfile.write(pdf_path.getvalue())
-            outfile.close()
-            retry = 1
-            while not os.path.exists(file_path) and retry <= 200:
-                sleep(0.01)
-                retry += 1
-        else:
-            file_path = pdf_path
-        output = Popen(['Rscript', 'pdf_to_text_converter.R', file_path], stdout=PIPE)
-        text = io.TextIOWrapper(output.stdout, encoding="utf-8").read()
-        if isinstance(pdf_path, io.BytesIO) and os.path.exists(file_path):
-            os.remove(file_path)
-        return text
-    except:
-        traceback.print_exc()
-        if isinstance(pdf_path, io.BytesIO) and os.path.exists(file_path):
-            os.remove(file_path)
-        return ''
-
-
 def extract_data_from_pdf(pdf_path, format='text', codec='utf-8', password=''):
     print(type(pdf_path))
     text = ""
@@ -330,24 +297,17 @@ def extract_text(file_path, extension):
     :param file_path: path of file of which text is to be extracted
     :param extension: extension of file `file_name`
     '''
-    text = ''
+    # text = ''
     docs = []
     if extension == 'pdf':
-        # html = extract_html_from_pdf(file_path, 'html')
-        text = extract_text_from_pdf_Rscript(file_path)
-        # print("extract_text_from_pdf_Rscript", text)
+        for page in extract_data_from_pdf(file_path):
+            if page.strip():
+                docs.append(Document(page_content=page, metadata={"source": "local"}))
+        # for page in extract_text_by_page(saved_file_path):
+        #     if page.strip():
+        #         docs.append(Document(page_content=page, metadata={"source": "local"}))
+        # print("extract_data_from_pdf", docs)
         # sys.stdout.flush()
-        if text.strip():
-            docs.append(Document(page_content=text, metadata={"source": "local"}))
-        if not docs:
-            for page in extract_data_from_pdf(file_path):
-                if page.strip():
-                    docs.append(Document(page_content=page, metadata={"source": "local"}))
-            # for page in extract_text_by_page(saved_file_path):
-            #     if page.strip():
-            #         docs.append(Document(page_content=page, metadata={"source": "local"}))
-            # print("extract_data_from_pdf", docs)
-            # sys.stdout.flush()
         if not docs:
             save_path = "/tmp/{}.pdf".format(
                 datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")

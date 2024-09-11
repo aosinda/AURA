@@ -69,23 +69,46 @@ def main():
 
     /* Remove the button border and shadow */
     .stButton>button {
-        border: none;
-        background-color: transparent;
-        box-shadow: none;
-        padding: 10px;
+        border: 2px solid #3498db !important; /* Force blue border */
+        background-color: #3498db !important; /* Force blue background */
+        color: white !important; /* Force white text */
+        padding: 12px 20px;
         font-size: 18px;
-        color: black;
-        text-align: left; /* Aligns the button text to the left */
+        text-align: left;
         width: 100%;
-        display: block; /* Ensures buttons take up full width */
-        margin-left: 0; /* Removes any auto centering */
+        display: block;
+        margin-left: 0;
+        border-radius: 8px;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        outline: none !important; /* Remove focus outline */
+    }
+    
+    /* Hover effect */
+    .stButton>button:hover {
+        background-color: #2980b9 !important; /* Force darker blue on hover */
+        color: yellow !important; /* Force white text on hover */
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    /* Active (clicked) state */
+    .stButton>button:active {
+        background-color: #1f6aa6 !important; /* Force even darker blue on click */
+        color: yellow !important; /* Force white text on active */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transform: translateY(0);
+        border: 2px solid #1f6aa6 !important; /* Force border to stay blue */
+    }
+    
+    /* Focus state (after clicking) */
+    .stButton>button:focus {
+        outline: none !important; /* Force no outline on focus */
+        color: yellow !important; /* Force white text on active */
+        border: 2px solid #1f6aa6 !important; /* Force border to stay blue */
     }
 
-    /* Remove background color on hover */
-    .stButton>button:hover {
-        background-color: #f0f0f0;
-        cursor: pointer;
-    }
 
     </style>
     """, unsafe_allow_html=True)

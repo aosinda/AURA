@@ -5,28 +5,52 @@ import demo_util
 from demo_util import DemoFileIOHelper
 from input_processing import extract_text
 from storyline import generate_storyline
+import magic
+import io
 
-def handle_uploaded_file(uploaded_file):
-    file_extension = uploaded_file.name.split('.')[-1].lower()
-    file_path = f"/tmp/{uploaded_file.name}"
+
+MIME_TYPE_EXTENSIONS = {
+    'application/CDFV2': 'doc',
+    'application/msword': 'doc',
+    'application/octet-stream': 'docx',
+    'application/pdf': 'pdf',
+    'application/rtf': 'rtf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/zip': 'docx',
+    'text/html': 'html',
+    'text/plain': 'txt',
+    'text/rtf': 'rtf',
+    'application/vnd.oasis.opendocument.spreadsheet': 'excel',
+    'application/csv': 'csv',
+    'text/csv': 'csv',
+}
+
+
+def handle_uploaded_file(uploaded_file, file_extension):
+    # file_extension = uploaded_file.name.split('.')[-1].lower()
+    # file_path = f"/tmp/{uploaded_file.name}"
     
     try:
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
+        # with open(file_path, "wb") as f:
+        #     f.write(uploaded_file.getbuffer())
         
-        docs = extract_text(file_path, file_extension)
+        docs = extract_text(uploaded_file, file_extension)
         return docs
     except Exception as e:
         st.error(f"An error occurred while handling the file: {e}")
         traceback.print_exc()
-    finally:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-    
+    # finally:
+    #     if os.path.exists(file_path):
+    #         os.remove(file_path)
     return None
 
+
 def display_storylines(storylines):
-    st.markdown("<p style='font-size: 18px; font-weight: bold;'>Here are three possible storylines. Please chose one, so AURA can make a thorough research</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='font-size: 18px; font-weight: bold;'>Here are three possible storylines. Please chose one, so AURA "
+        "can make a thorough research</p>",
+        unsafe_allow_html=True
+    )
     for idx, storyline in enumerate([storylines.storyline_1, storylines.storyline_2, storylines.storyline_3], 1):
         st.write(f"**Storyline {idx}:**")
         st.write(f"- **Option:** {storyline.storyline_option}")
@@ -38,7 +62,9 @@ def display_storylines(storylines):
             st.session_state["page3_write_article_state"] = "storyline_selected"
             st.experimental_rerun()
 
+
 def create_new_article_page():
+    mime = magic.Magic(mime=True)
     css = '''
     <style>
         [data-testid='stFileUploader'] {
@@ -75,8 +101,17 @@ def create_new_article_page():
     if st.session_state["page3_write_article_state"] == "not started":
         _, search_form_column, _ = st.columns([2, 5, 2])
         with search_form_column:
-            uploaded_file = st.file_uploader("Upload File", type=["txt", "pdf", "docx"], key="unique_key_for_file_uploader", label_visibility="collapsed")
-            st.session_state["page3_topic"] = st.text_input(label='page3_topic', label_visibility="collapsed", placeholder="Enter the topic here")
+            uploaded_file = st.file_uploader(
+                "Upload File",
+                type=["csv", "pdf", "doc", "docx", "txt", "rtf", "html"],
+                key="unique_key_for_file_uploader",
+                label_visibility="collapsed"
+            )
+            st.session_state["page3_topic"] = st.text_input(
+                label='page3_topic',
+                label_visibility="collapsed",
+                placeholder="Enter the topic here"
+            )
 
             if uploaded_file or st.session_state["page3_topic"].strip():
                 st.session_state["uploaded_file"] = uploaded_file  # Store the file in session state
@@ -84,9 +119,32 @@ def create_new_article_page():
 
     if st.session_state["page3_write_article_state"] == "initiated":
         uploaded_file = st.session_state.get("uploaded_file")  # Retrieve the file from session state
+        print("create new article",
+            type(uploaded_file), isinstance(uploaded_file, io.BytesIO),
+            isinstance(uploaded_file, st.runtime.uploaded_file_manager.UploadedFile)
+        )
 
         if uploaded_file is not None:
-            docs = handle_uploaded_file(uploaded_file)
+            if isinstance(uploaded_file, io.BytesIO):
+                mimeType = mime.from_buffer(uploaded_file.getvalue())
+                ext = MIME_TYPE_EXTENSIONS[mimeType] if mimeType in MIME_TYPE_EXTENSIONS else ""
+            elif os.path.exists(uploaded_file):
+                mimeType = mime.from_file(uploaded_file)
+                ext = MIME_TYPE_EXTENSIONS[mimeType] if mimeType in MIME_TYPE_EXTENSIONS else ""
+            else:
+                mimeType = uploaded_file.type
+                ext = MIME_TYPE_EXTENSIONS[mimeType] if mimeType in MIME_TYPE_EXTENSIONS else ""
+
+            if not ext:
+                mimeType = uploaded_file.type
+                ext = MIME_TYPE_EXTENSIONS[mimeType] if mimeType in MIME_TYPE_EXTENSIONS else ""
+            docs = []
+            if ext:
+                in_memory_file = io.BytesIO()
+                file_content = uploaded_file.read()
+                in_memory_file.write(file_content)
+                in_memory_file.seek(0)
+                docs = handle_uploaded_file(in_memory_file, ext)
             if docs:
                 user_input_text = " ".join([doc.page_content for doc in docs])
 
@@ -101,8 +159,14 @@ def create_new_article_page():
                 st.write("No text could be extracted from the document.")
 
     if st.session_state.get("page3_write_article_state") == "storyline_selected":
-        st.text_input(label='Topic Option', value=st.session_state["selected_storyline_option"], label_visibility="collapsed", placeholder="Enter the topic here")
-        st.text_input(label='Storyline Elaboration', value=st.session_state["selected_storyline_elaboration"], label_visibility="collapsed", placeholder="Enter the elaboration here")
+        st.text_input(
+            label='Topic Option', value=st.session_state["selected_storyline_option"],
+            label_visibility="collapsed", placeholder="Enter the topic here"
+        )
+        st.text_input(
+            label='Storyline Elaboration', value=st.session_state["selected_storyline_elaboration"],
+            label_visibility="collapsed", placeholder="Enter the elaboration here"
+        )
 
         if st.button("Proceed with this Storyline"):
             st.session_state["page3_write_article_state"] = "pre_writing"
