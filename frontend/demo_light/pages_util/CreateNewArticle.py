@@ -140,77 +140,12 @@ def create_new_article_page():
             text-align: center;
         }
         [data-testid='InputInstructions'] {
-            display: none;
+            position: relative;
+            top: 5px !important;
+            color: red !important; /* Force white text on hover */
         }
     </style>
     '''
-    # css = '''
-    #     <style>
-    #         /* Center the file uploader and text input */
-    #         .centered {
-    #             display: flex;
-    #             justify-content: center;
-    #             align-items: center;
-    #             margin-top: 50px;
-    #             flex-direction: column;
-    #         }
-    #
-    #         /* Styling for the file uploader container */
-    #         [data-testid='stFileUploader'] {
-    #             width: 400px; /* Make it bigger */
-    #             max-width: 80%;
-    #         }
-    #
-    #         /* Styling the actual upload button */
-    #         [data-testid='stFileUploader'] section {
-    #             padding: 15px;
-    #             background-color: white;
-    #             border-radius: 10px; /* Rounded corners */
-    #             border: 2px solid;
-    #             border-image-slice: 1;
-    #             border-width: 3px;
-    #             border-image-source: linear-gradient(45deg, #ff6ec4, #7873f5); /* Gradient border */
-    #             transition: transform 0.3s ease;
-    #             text-align: center;
-    #         }
-    #
-    #         [data-testid='stFileUploader'] section:hover {
-    #             transform: scale(1.05); /* Slight scale up on hover */
-    #         }
-    #
-    #         /* Hiding the inner default label */
-    #         [data-testid='stFileUploader'] section > input + div {
-    #             display: none;
-    #         }
-    #
-    #         /* Styling for the text input box */
-    #         input[type="text"] {
-    #             width: 400px; /* Make it bigger */
-    #             max-width: 80%;
-    #             padding: 15px;
-    #             font-size: 18px;
-    #             margin-top: 20px;
-    #             border-radius: 10px; /* Rounded corners */
-    #             border: 2px solid;
-    #             border-image-slice: 1;
-    #             border-width: 3px;
-    #             border-image-source: linear-gradient(45deg, #7873f5, #ff6ec4); /* Gradient border */
-    #             outline: none;
-    #         }
-    #
-    #         input[type="text"]:focus {
-    #             border-image-source: linear-gradient(45deg, #ff6ec4, #7873f5); /* Change gradient on focus */
-    #             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    #         }
-    #
-    #         /* Additional styling to center elements */
-    #         [data-testid='stFileUploader'] section + div {
-    #             text-align: center;
-    #             padding-top: 0;
-    #         }
-    #
-    #     </style>
-    #     '''
     st.markdown(css, unsafe_allow_html=True)
 
     demo_util.clear_other_page_session_state(page_index=3)
@@ -320,7 +255,6 @@ def create_new_article_page():
             try:
                 # Insert the st.write() statement here to debug the topic
                 st.write(f"Topic for research: {st.session_state['selected_storyline_elaboration']}")
-
               
                 st.session_state["runner"].run(
                     topic=st.session_state["selected_storyline_elaboration"],

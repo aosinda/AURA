@@ -116,7 +116,15 @@ def main():
 
     # Header for the app
     st.markdown("""
-    <h1 style='font-size: 24px; font-weight: bold; color: #3c6e71; padding: 10px 0; background-color: white; text-align: left; margin: 0;'>
+    <h1 style='
+        font-size: 48px; 
+        font-weight: bold; 
+        color: #056161; 
+        padding: 10px 0; 
+        background-color: white; 
+        text-align: center; 
+        margin: 0;
+    '>
         AURA
     </h1>
     """, unsafe_allow_html=True)
@@ -127,7 +135,9 @@ def main():
         my_library_icon = "📄"
         
         # Update button labels
-        if st.button(f"{create_article_icon} Create New Research Report", key="create_article_button", use_container_width=True):
+        if st.button(
+            f"{create_article_icon} Create New Research Report", key="create_article_button", use_container_width=True
+        ):
             st.session_state.update({"selected_page": "Create New Article"})
         
         if st.button(f"{my_library_icon} My Library", key="my_articles_button", use_container_width=True):

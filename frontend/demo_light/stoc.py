@@ -79,7 +79,7 @@ class stoc:
         return '\n'.join(toc)
 
     @classmethod
-    def from_markdown(cls, text: str, expander=None):
+    def from_markdown(cls, text: str, expander=None, write_text=True):
         self = cls()
         for line in text.splitlines():
             if line.startswith("###"):
@@ -103,7 +103,25 @@ class stoc:
         """
         st.markdown(custom_css, unsafe_allow_html=True)
 
-        st.write(text)
+        if write_text:
+            st.write(text)
+        else:
+            st.markdown(
+                f"""<div style='
+        background: linear-gradient(45deg, #e0f7fa, #ffffff); 
+        padding: 30px;
+        margin-top: 20px;
+        border-radius: 15px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+        color: #333;
+        font-size: 18px;
+        line-height: 1.6;
+    '>
+                            {text}
+                        </div>
+                        """,
+                unsafe_allow_html=True
+            )
         self.toc(expander=expander)
 
 

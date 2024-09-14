@@ -422,7 +422,7 @@ def _display_main_article_text(article_text, citation_dict, table_content_sideba
     article_text = DemoTextProcessingHelper.add_inline_citation_link(article_text, citation_dict)
     # '$' needs to be changed to '\$' to avoid being interpreted as LaTeX in st.markdown()
     article_text = article_text.replace("$", "\\$")
-    stoc.from_markdown(article_text, table_content_sidebar)
+    stoc.from_markdown(article_text, table_content_sidebar, False)
 
 
 def _display_references(citation_dict):
@@ -465,7 +465,7 @@ def _display_persona_conversations(conversation_log):
 def _display_main_article(selected_article_file_path_dict, show_reference=True, show_conversation=True):
     article_data = DemoFileIOHelper.assemble_article_data(selected_article_file_path_dict)
 
-    with st.container(height=1000, border=True):
+    with st.container():
         table_content_sidebar = st.sidebar.expander("**Table of contents**", expanded=True)
         _display_main_article_text(article_text=article_data.get("article", ""),
                                    citation_dict=article_data.get("citations", {}),
@@ -537,8 +537,23 @@ def set_storm_runner():
 def display_article_page(selected_article_name, selected_article_file_path_dict,
                          show_title=True, show_main_article=True):
     if show_title:
-        st.markdown(f"<h2 style='text-align: center;'>{selected_article_name.replace('_', ' ')}</h2>",
-                    unsafe_allow_html=True)
+        st.markdown(
+            f"""<h2 style='
+                text-align: center;
+                font-size: 24px; 
+                font-weight: 700; 
+                color: #056161; 
+                padding: 10px;
+                margin-bottom: 20px;
+                background: linear-gradient(45deg, #e0f7fa, #ffffff); 
+                border-radius: 12px;
+                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            '>
+                {selected_article_name.replace('_', ' ').title()}
+            </h2>
+            """,
+            unsafe_allow_html=True
+        )
 
     if show_main_article:
         _display_main_article(selected_article_file_path_dict)
