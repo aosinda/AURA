@@ -20,7 +20,7 @@ def main():
             if type(value) == str:
                 os.environ[key] = value
     
-     # Initialize session state variables
+    # Initialize session state variables
     if "selected_article_index" not in st.session_state:
         st.session_state["selected_article_index"] = 0
     if "selected_page" not in st.session_state:
@@ -69,8 +69,8 @@ def main():
 
     /* Remove the button border and shadow */
     .stButton>button {
-        border: 2px solid #3498db !important; /* Force blue border */
-        background-color: #3498db !important; /* Force blue background */
+        border: 2px solid #06908F !important; /* Force blue border */
+        background-color: #06908F !important; /* Force blue background */
         color: white !important; /* Force white text */
         padding: 12px 20px;
         font-size: 18px;
@@ -87,7 +87,7 @@ def main():
     
     /* Hover effect */
     .stButton>button:hover {
-        background-color: #2980b9 !important; /* Force darker blue on hover */
+        background-color: #08AFAF !important; /* Force darker blue on hover */
         color: yellow !important; /* Force white text on hover */
         box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
         transform: translateY(-2px);
@@ -95,7 +95,7 @@ def main():
     
     /* Active (clicked) state */
     .stButton>button:active {
-        background-color: #1f6aa6 !important; /* Force even darker blue on click */
+        background-color: #056161 !important; /* Force even darker blue on click */
         color: yellow !important; /* Force white text on active */
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         transform: translateY(0);
@@ -104,6 +104,7 @@ def main():
     
     /* Focus state (after clicking) */
     .stButton>button:focus {
+        background-color: #056161 !important; /* Force even darker blue on click */
         outline: none !important; /* Force no outline on focus */
         color: yellow !important; /* Force white text on active */
         border: 2px solid #1f6aa6 !important; /* Force border to stay blue */
@@ -134,12 +135,18 @@ def main():
 
     # Main content display based on the selected page
     if st.session_state.get("selected_page") == "My Articles":
+        # print("selected_page: My Articles")
+        demo_util.clear_other_page_session_state(page_index=1)
+        MyArticles.my_articles_page()
+    elif st.session_state.get("selected_page") == "Show Article":
+        # print("selected_page: Show Article")
         demo_util.clear_other_page_session_state(page_index=2)
         MyArticles.my_articles_page()
-
     elif st.session_state.get("selected_page") == "Create New Article":
+        # print("selected_page: Create New Article")
         demo_util.clear_other_page_session_state(page_index=3)
         CreateNewArticle.create_new_article_page()
+
 
 if __name__ == "__main__":
     main()

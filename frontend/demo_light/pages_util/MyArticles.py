@@ -3,6 +3,7 @@ import demo_util
 import streamlit as st
 from demo_util import DemoFileIOHelper
 
+
 def my_articles_page():
     # Add custom CSS for centering content
     st.markdown("""
@@ -66,6 +67,7 @@ def my_articles_page():
 
                     # Display the article as a clickable header
                     if st.button(cleaned_article_title):
+                        st.session_state.update({"selected_page": "Show Article"})
                         st.session_state["page2_selected_my_article"] = article_name
                         st.rerun()
 
