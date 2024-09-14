@@ -108,18 +108,18 @@ class stoc:
         else:
             st.markdown(
                 f"""<div style='
-        background: linear-gradient(45deg, #e0f7fa, #ffffff); 
-        padding: 30px;
-        margin-top: 20px;
-        border-radius: 15px;
-        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-        color: #333;
-        font-size: 18px;
-        line-height: 1.6;
-    '>
-                            {text}
-                        </div>
-                        """,
+                    background: linear-gradient(45deg, #e0f7fa, #ffffff); 
+                    padding: 30px;
+                    margin-top: 20px;
+                    border-radius: 15px;
+                    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+                    color: #333;
+                    font-size: 18px;
+                    line-height: 1.6;
+                '>
+                    {text}
+                </div>
+                """,
                 unsafe_allow_html=True
             )
         self.toc(expander=expander)
