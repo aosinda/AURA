@@ -478,8 +478,8 @@ def _display_main_article(selected_article_file_path_dict, show_reference=True, 
     # display conversation history
     if show_conversation and "conversation_log" in article_data:
         with st.expander(
-                "**STORM** is powered by a knowledge agent that proactively research a given topic by asking good questions coming from different perspectives.\n\n"
-                ":sunglasses: Click here to view the agent's brain**STORM**ing process!"):
+                "AURA is powered by a knowledge agent that proactively research a given topic by asking good questions coming from different perspectives.\n\n"
+                "Click here to view the agent's brainstorming process"):
             _display_persona_conversations(conversation_log=article_data.get("conversation_log", {}))
 
 
@@ -523,8 +523,11 @@ def set_storm_runner():
 
 def display_article_page(selected_article_name, selected_article_file_path_dict,
                          show_title=True, show_main_article=True):
+    # Use the title from the storyline stored in session state if available
+    article_title = st.session_state.get("selected_storyline_title", selected_article_name)
+    
     if show_title:
-        st.markdown(f"<h2 style='text-align: center;'>{selected_article_name.replace('_', ' ')}</h2>",
+        st.markdown(f"<h2 style='text-align: center;'>{article_title.replace('_', ' ')}</h2>",
                     unsafe_allow_html=True)
 
     if show_main_article:

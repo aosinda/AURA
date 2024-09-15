@@ -1,0 +1,33 @@
+# Contents
+## Introduction
+## Background
+### Evolution of Journalism
+### Introduction of AI in Journalism
+### Purpose of AI Integration in Journalism
+## Ethical Dilemmas
+### Accuracy and Reliability
+### Editorial Independence
+#### Human vs AI Decision-Making
+#### Potential for AI Bias
+### Transparency
+#### Disclosure of AI Use
+#### Understanding AI's Role
+## Stakeholder Perspectives
+### Journalists
+### Ethicists
+### AI Developers
+### Media Consumers
+## Guidelines and Frameworks
+### Existing Guidelines for AI Use in Journalism
+### Best Practices for AI Integration
+### Areas for Improvement
+## Case Studies
+### Success Stories
+#### Enhancing Efficiency without Compromising Ethics
+### Controversies and Failures
+#### Examples of Ethical Breaches
+#### Public Reactions
+## Future Directions
+### Potential for Ethical AI in Journalism
+### Recommendations for Stakeholders
+## Conclusion

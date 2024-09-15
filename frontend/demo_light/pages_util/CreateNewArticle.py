@@ -2,9 +2,10 @@ import os
 import traceback
 import streamlit as st
 import demo_util
-from demo_util import DemoFileIOHelper
+from demo_util import DemoFileIOHelper, truncate_filename
 from input_processing import extract_text
 from storyline import generate_storyline
+import logging
 
 def handle_uploaded_file(uploaded_file):
     file_extension = uploaded_file.name.split('.')[-1].lower()
@@ -18,7 +19,7 @@ def handle_uploaded_file(uploaded_file):
         return docs
     except Exception as e:
         st.error(f"An error occurred while handling the file: {e}")
-        traceback.print_exc()
+        logging.error(traceback.format_exc())
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -26,43 +27,31 @@ def handle_uploaded_file(uploaded_file):
     return None
 
 def display_storylines(storylines):
-    st.markdown("<p style='font-size: 18px; font-weight: bold;'>Here are three possible storylines. Please choose one, so AURA can make a thorough research</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 18px; font-weight: bold;'>Here are three possible storylines. Please choose one for AURA to research thoroughly:</p>", unsafe_allow_html=True)
+    
     for idx, storyline in enumerate([storylines.storyline_1, storylines.storyline_2, storylines.storyline_3], 1):
-        st.write(f"**Storyline {idx}:**")
-        st.write(f"- **Option:** {storyline.storyline_option}")
-        st.write(f"- **Elaboration:** {storyline.elaboration}")
-
-        if st.button(f"Select Storyline {idx}", key=f"select_storyline_{idx}"):
-            st.session_state["selected_storyline_option"] = storyline.storyline_option
-            st.session_state["selected_storyline_elaboration"] = storyline.elaboration
+        storyline_elaboration = f"**{storyline.title}**\n\n{storyline.elaboration}"
+        storyline_option = (
+            f"**Type:** {storyline.storyline_type.value}\n\n"
+            f"**Angle:** {storyline.angle}\n\n"
+            f"**Newsworthiness:**\n" +
+            "\n".join([f"- {criteria.value}" for criteria in storyline.newsworthiness])
+        )
+        
+        st.markdown(storyline_elaboration, unsafe_allow_html=True)
+        st.markdown(storyline_option, unsafe_allow_html=True)
+        
+        if st.button(f"Select the storyline: {storyline.title}", key=f"select_storyline_{idx}"):
+            st.session_state["selected_storyline_title"] = storyline.title
+            st.session_state["selected_storyline_elaboration"] = storyline_elaboration
+            st.session_state["selected_storyline_option"] = storyline_option
             st.session_state["page3_write_article_state"] = "storyline_selected"
-            st.experimental_rerun()
 
 def create_new_article_page():
-    css = '''
-    <style>
-        [data-testid='stFileUploader'] {
-            width: max-content;
-        }
-        [data-testid='stFileUploader'] section {
-            padding: 0;
-            float: right;
-        }
-        [data-testid='stFileUploader'] section > input + div {
-            display: none;
-        }
-        [data-testid='stFileUploader'] section + div {
-            float: right;
-            padding-top: 0;
-        }
-    </style>
-    '''
-    st.markdown(css, unsafe_allow_html=True)
-
     demo_util.clear_other_page_session_state(page_index=3)
 
     if "page3_write_article_state" not in st.session_state:
-        st.session_state["page3_write_article_state"] = "not started"
+        st.session_state["page3_write_article_state"] = "not_started"
 
     st.markdown("""
     <h2 style='text-align: center;'>Create a New Research Report</h2>
@@ -72,37 +61,45 @@ def create_new_article_page():
     </p>
     """, unsafe_allow_html=True)
 
-    if st.session_state["page3_write_article_state"] == "not started":
+    if st.session_state["page3_write_article_state"] == "not_started":
         _, search_form_column, _ = st.columns([2, 5, 2])
         with search_form_column:
             uploaded_file = st.file_uploader("Upload File", type=["txt", "pdf", "docx"], key="unique_key_for_file_uploader", label_visibility="collapsed")
             st.session_state["page3_topic"] = st.text_input(label='page3_topic', label_visibility="collapsed", placeholder="Enter the topic here")
 
             if uploaded_file or st.session_state["page3_topic"].strip():
-                st.session_state["uploaded_file"] = uploaded_file  # Store the file in session state
+                st.session_state["uploaded_file"] = uploaded_file
                 st.session_state["page3_write_article_state"] = "initiated"
 
     if st.session_state["page3_write_article_state"] == "initiated":
-        uploaded_file = st.session_state.get("uploaded_file")  # Retrieve the file from session state
+        uploaded_file = st.session_state.get("uploaded_file")
 
-        if uploaded_file is not None:
+        if uploaded_file:
             docs = handle_uploaded_file(uploaded_file)
             if docs:
                 user_input_text = " ".join([doc.page_content for doc in docs])
-
-                st.write("Generating Storylines...")
-                try:
-                    storylines = generate_storyline(user_input_text)
-                    display_storylines(storylines)
-                except Exception as e:
-                    st.error(f"An error occurred while generating storylines: {e}")
-                    traceback.print_exc()
             else:
-                st.write("No text could be extracted from the document.")
+                user_input_text = st.session_state["page3_topic"]
+        else:
+            user_input_text = st.session_state["page3_topic"]
 
-    if st.session_state.get("page3_write_article_state") == "storyline_selected":
+        st.write("Generating Storylines...")
+        try:
+            storylines = generate_storyline(user_input_text)
+            st.session_state["storylines"] = storylines
+            st.session_state["page3_write_article_state"] = "storyline_generated"
+        except Exception as e:
+            st.error(f"An error occurred while generating storylines: {e}")
+            logging.error(traceback.format_exc())
+
+    if st.session_state["page3_write_article_state"] == "storyline_generated":
+        storylines = st.session_state.get("storylines")
+        if storylines:
+            display_storylines(storylines)
+
+    if st.session_state["page3_write_article_state"] == "storyline_selected":
         st.text_input(label='Topic Option', value=st.session_state["selected_storyline_option"], label_visibility="collapsed", placeholder="Enter the topic here")
-        st.text_input(label='Storyline Elaboration', value=st.session_state["selected_storyline_elaboration"], label_visibility="collapsed", placeholder="Enter the elaboration here")
+        st.text_area(label='Storyline Elaboration', value=st.session_state["selected_storyline_elaboration"], label_visibility="collapsed", placeholder="Enter the elaboration here")
 
         if st.button("Proceed with this Storyline"):
             st.session_state["page3_write_article_state"] = "pre_writing"
@@ -115,19 +112,16 @@ def create_new_article_page():
         if not os.path.exists(current_working_dir):
             os.makedirs(current_working_dir)
 
+    if st.session_state["page3_write_article_state"] == "pre_writing":
         if "runner" not in st.session_state:
             demo_util.set_storm_runner()
+        
 
         st.session_state["page3_current_working_dir"] = current_working_dir
-        status = st.status("Brainstorming topic... (This may take 2-3 minutes.)")
+        status = st.status("I am brain**STORM**ing now to research the topic. (This may take 2-3 minutes.)")
         st_callback_handler = demo_util.StreamlitCallbackHandler(status)
-
         with status:
             try:
-                # Insert the st.write() statement here to debug the topic
-                st.write(f"Topic for research: {st.session_state['selected_storyline_elaboration']}")
-
-              
                 st.session_state["runner"].run(
                     topic=st.session_state["selected_storyline_elaboration"],
                     do_research=True,
@@ -139,48 +133,46 @@ def create_new_article_page():
 
                 if "page3_topic_name_cleaned" not in st.session_state:
                     st.session_state["page3_topic_name_cleaned"] = st.session_state["selected_storyline_elaboration"].replace(' ', '_').replace('/', '_')
+                    st.session_state["page3_topic_name_truncated"] = truncate_filename(st.session_state["page3_topic_name_cleaned"])
 
-                conversation_log_path = os.path.join(st.session_state["page3_current_working_dir"], st.session_state["page3_topic_name_cleaned"], "conversation_log.json")
+                conversation_log_path = os.path.join(st.session_state["page3_current_working_dir"],
+                                                 st.session_state["page3_topic_name_truncated"], "conversation_log.json")
                 demo_util._display_persona_conversations(DemoFileIOHelper.read_json_file(conversation_log_path))
                 st.session_state["page3_write_article_state"] = "final_writing"
-                status.update(label="Brainstorming complete!", state="complete")
-
+                status.update(label="brain**STORM**ing complete!", state="complete")
+                
             except Exception as e:
-                st.error(f"An error occurred during pre-writing: {e}")
-                traceback.print_exc()
+                st.error(f"An error occurred while running the STORM process: {e}")
+                logging.error(traceback.format_exc())
 
     if st.session_state["page3_write_article_state"] == "final_writing":
-        with st.status("Compiling the final article... (This may take 4-5 minutes.)") as status:
+        with st.status("Now I will connect the information I found for your reference. (This may take 4-5 minutes.)") as status:
+            st.info('Now I will connect the information I found for your reference. (This may take 4-5 minutes.)')
             try:
-                #debug
-                print(f"Topic before final writing: {st.session_state['selected_storyline_elaboration']}")
-                st.session_state["runner"].run(
-                    topic=st.session_state["selected_storyline_elaboration"],
-                    do_research=False,
-                    do_generate_outline=False,
-                    do_generate_article=True,
-                    do_polish_article=True
-                )
+                st.session_state["runner"].run(topic=st.session_state["selected_storyline_elaboration"], do_research=False,
+                                               do_generate_outline=False,
+                                               do_generate_article=True, do_polish_article=True, remove_duplicate=False)
                 st.session_state["runner"].post_run()
                 st.session_state["page3_write_article_state"] = "prepare_to_show_result"
-                status.update(label="Final article ready!", state="complete")
+                status.update(label="information synthesis complete!", state="complete")
             except Exception as e:
-                st.error(f"An error occurred during final writing: {e}")
-                traceback.print_exc()
+                st.error(f"An error occurred while finalizing the article: {e}")
+                logging.error(traceback.format_exc())
 
     if st.session_state["page3_write_article_state"] == "prepare_to_show_result":
         _, show_result_col, _ = st.columns([4, 3, 4])
         with show_result_col:
-            if st.button("Show Final Article"):
+            if st.button("show final article"):
                 st.session_state["page3_write_article_state"] = "completed"
                 st.experimental_rerun()
 
     if st.session_state["page3_write_article_state"] == "completed":
+        article_title = st.session_state.get("selected_storyline_title", "Untitled Article")
         current_working_dir_paths = DemoFileIOHelper.read_structure_to_dict(st.session_state["page3_current_working_dir"])
-        if st.session_state["page3_topic_name_cleaned"] in current_working_dir_paths:
-            current_article_file_path_dict = current_working_dir_paths[st.session_state["page3_topic_name_cleaned"]]
-            demo_util.display_article_page(selected_article_name=st.session_state["page3_topic_name_cleaned"],
+        if st.session_state["page3_topic_name_truncated"] in current_working_dir_paths:
+            current_article_file_path_dict = current_working_dir_paths[st.session_state["page3_topic_name_truncated"]]
+            demo_util.display_article_page(selected_article_name=article_title,
                                            selected_article_file_path_dict=current_article_file_path_dict,
-                                           show_title=True, show_main_article=True, show_chatlog=False, show_steps=True)
+                                           show_title=True, show_main_article=True)
         else:
             st.error("No final article found.")
