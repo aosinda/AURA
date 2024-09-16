@@ -103,6 +103,7 @@ class stoc:
         """
         st.markdown(custom_css, unsafe_allow_html=True)
 
+        print("text: ", text)
         if write_text:
             st.write(text)
         else:
@@ -116,7 +117,7 @@ class stoc:
                     color: #333;
                     font-size: 18px;
                     line-height: 1.6;
-                    text-align: justify; /* Justify the text */
+                    text-align: justify;
                 '>
                     {text}
                 </div>
