@@ -1,87 +1,93 @@
 import os
-
 import demo_util
 import streamlit as st
-from demo_util import DemoFileIOHelper, DemoUIHelper
-from streamlit_card import card
+from demo_util import DemoFileIOHelper
 
 
-# set page config and display title
 def my_articles_page():
-    with st.sidebar:
-        _, return_button_col = st.columns([2, 5])
-        with return_button_col:
-            if st.button("Select another article", disabled="page2_selected_my_article" not in st.session_state):
-                if "page2_selected_my_article" in st.session_state:
-                    del st.session_state["page2_selected_my_article"]
-                st.rerun()
+    # Add custom CSS for centering content
+    st.markdown("""
+    <style>
+    .centered-container {
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 20px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # sync my articles
+    # Sync articles if not already in session state
     if "page2_user_articles_file_path_dict" not in st.session_state:
+        # Define the base directory for articles
         local_dir = os.path.join(demo_util.get_demo_dir(), "DEMO_WORKING_DIR")
         os.makedirs(local_dir, exist_ok=True)
+        # Read the directory structure into session state
         st.session_state["page2_user_articles_file_path_dict"] = DemoFileIOHelper.read_structure_to_dict(local_dir)
 
-    # if no feature demo selected, display all featured articles as info cards
-    def article_card_setup(column_to_add, card_title, article_name):
-        with column_to_add:
-            cleaned_article_title = article_name.replace("_", " ")
-            hasClicked = card(title=" / ".join(card_title),
-                              text=article_name.replace("_", " "),
-                              image=DemoFileIOHelper.read_image_as_base64(
-                                  os.path.join(demo_util.get_demo_dir(), "assets", "void.jpg")),
-                              styles=DemoUIHelper.get_article_card_UI_style(boarder_color="#9AD8E1"))
-            if hasClicked:
-                st.session_state["page2_selected_my_article"] = article_name
-                st.rerun()
+    # Center the main content container
+    with st.container():
+        st.markdown("<div class='centered-container'>", unsafe_allow_html=True)
 
-    if "page2_selected_my_article" not in st.session_state:
-        # display article cards
-        my_article_columns = st.columns(3)
-        if len(st.session_state["page2_user_articles_file_path_dict"]) > 0:
-            # get article names
-            article_names = sorted(list(st.session_state["page2_user_articles_file_path_dict"].keys()))
-            # configure pagination
-            pagination = st.container()
-            bottom_menu = st.columns((1, 4, 1, 1, 1))[1:-1]
-            with bottom_menu[2]:
-                batch_size = st.selectbox("Page Size", options=[24, 48, 72])
-            with bottom_menu[1]:
-                total_pages = (
-                    int(len(article_names) / batch_size) if int(len(article_names) / batch_size) > 0 else 1
-                )
-                current_page = st.number_input(
-                    "Page", min_value=1, max_value=total_pages, step=1
-                )
-            with bottom_menu[0]:
-                st.markdown(f"Page **{current_page}** of **{total_pages}** ")
-            # show article cards
-            with pagination:
-                my_article_count = 0
-                start_index = (current_page - 1) * batch_size
-                end_index = min(current_page * batch_size, len(article_names))
-                for article_name in article_names[start_index: end_index]:
-                    column_to_add = my_article_columns[my_article_count % 3]
-                    my_article_count += 1
-                    article_card_setup(column_to_add=column_to_add,
-                                       card_title=["My Article"],
-                                       article_name=article_name)
+        # Display article previews if no article is selected
+        if "page2_selected_my_article" not in st.session_state:
+            st.markdown("### My Articles")  # Header for the list of articles
+
+            if len(st.session_state["page2_user_articles_file_path_dict"]) > 0:
+                article_names = sorted(list(st.session_state["page2_user_articles_file_path_dict"].keys()))
+
+                # Loop through each article (i.e., folder)
+                for article_name in article_names:
+                    # Clean up the article name for display
+                    cleaned_article_title = article_name.replace("_", " ").title()
+
+                    # Get the path to the article folder
+                    article_folder_path = os.path.join(demo_util.get_demo_dir(), "DEMO_WORKING_DIR", article_name)
+
+                    # Define the potential paths for the polished and raw article text files
+                    polished_article_path = os.path.join(article_folder_path, "storm_gen_article_polished.txt")
+                    raw_article_path = os.path.join(article_folder_path, "storm_gen_article.txt")
+
+                    # Attempt to load the content of the polished article or fall back to the raw article
+                    if os.path.exists(polished_article_path):
+                        with open(polished_article_path, "r") as file:
+                            article_content = file.read()
+                    elif os.path.exists(raw_article_path):
+                        with open(raw_article_path, "r") as file:
+                            article_content = file.read()
+                    else:
+                        article_content = "No preview available..."
+
+                    # Remove the `# summary` line if present
+                    article_content_lines = article_content.splitlines()
+                    article_content = "\n".join([line for line in article_content_lines if line.strip() != "# summary"])
+
+                    # Generate a preview of the first 100 characters
+                    preview_text = article_content[:300] + "..." if article_content != "No preview available..." else article_content
+
+                    # Display the article as a clickable header
+                    if st.button(cleaned_article_title):
+                        st.session_state.update({"selected_page": "Show Article"})
+                        st.session_state["page2_selected_my_article"] = article_name
+                        st.rerun()
+
+                    # Show a short preview of the article content as regular text
+                    st.write(preview_text)
+
+                    # Add a horizontal line separator between articles
+                    st.write("---")
+            else:
+                # No articles available, prompt to create one
+                st.info("No articles found. Start your first research!")
+
+        # If an article is selected, display the full article content
         else:
-            with my_article_columns[0]:
-                hasClicked = card(title="Get started",
-                                  text="Start your first research!",
-                                  image=DemoFileIOHelper.read_image_as_base64(
-                                      os.path.join(demo_util.get_demo_dir(), "assets", "void.jpg")),
-                                  styles=DemoUIHelper.get_article_card_UI_style())
-                if hasClicked:
-                    st.session_state.selected_page = 1
-                    st.session_state["manual_selection_override"] = True
-                    st.session_state["rerun_requested"] = True
-                    st.rerun()
-    else:
-        selected_article_name = st.session_state["page2_selected_my_article"]
-        selected_article_file_path_dict = st.session_state["page2_user_articles_file_path_dict"][selected_article_name]
+            selected_article_name = st.session_state["page2_selected_my_article"]
+            selected_article_file_path_dict = st.session_state["page2_user_articles_file_path_dict"][selected_article_name]
 
-        demo_util.display_article_page(selected_article_name=selected_article_name,
-                                       selected_article_file_path_dict=selected_article_file_path_dict,
-                                       show_title=True, show_main_article=True)
+            # Display the full content of the selected article
+            demo_util.display_article_page(selected_article_name=selected_article_name,
+                                           selected_article_file_path_dict=selected_article_file_path_dict,
+                                           show_title=True, show_main_article=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)

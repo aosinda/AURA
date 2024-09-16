@@ -11,15 +11,14 @@ import streamlit as st
 
 # If you install the source code instead of the `knowledge-storm` package,
 # Uncomment the following lines:
-# import sys
-# sys.path.append('../../')
+import sys
+sys.path.append('../../')
 from knowledge_storm import STORMWikiRunnerArguments, STORMWikiRunner, STORMWikiLMConfigs
 from knowledge_storm.lm import OpenAIModel
-from knowledge_storm.rm import YouRM
+from knowledge_storm.rm import  BingSearch
 from knowledge_storm.storm_wiki.modules.callback import BaseCallbackHandler
 from knowledge_storm.utils import truncate_filename
 from stoc import stoc
-
 
 class DemoFileIOHelper():
     @staticmethod
@@ -152,6 +151,7 @@ class DemoFileIOHelper():
 
     @staticmethod
     def assemble_article_data(article_file_path_dict):
+        article_data = {}
         """
         Constructs a dictionary containing the content and metadata of an article
         based on the available files in the article's directory. This includes the
@@ -173,16 +173,16 @@ class DemoFileIOHelper():
         """
         if "storm_gen_article.txt" in article_file_path_dict or "storm_gen_article_polished.txt" in article_file_path_dict:
             full_article_name = "storm_gen_article_polished.txt" if "storm_gen_article_polished.txt" in article_file_path_dict else "storm_gen_article.txt"
-            article_data = {"article": DemoTextProcessingHelper.parse(
-                DemoFileIOHelper.read_txt_file(article_file_path_dict[full_article_name]))}
+            article_data["article"] = DemoTextProcessingHelper.parse(
+                DemoFileIOHelper.read_txt_file(article_file_path_dict[full_article_name])
+            )
             if "url_to_info.json" in article_file_path_dict:
                 article_data["citations"] = _construct_citation_dict_from_search_result(
                     DemoFileIOHelper.read_json_file(article_file_path_dict["url_to_info.json"]))
             if "conversation_log.json" in article_file_path_dict:
                 article_data["conversation_log"] = DemoFileIOHelper.read_json_file(
                     article_file_path_dict["conversation_log.json"])
-            return article_data
-        return None
+        return article_data
 
 
 class DemoTextProcessingHelper():
@@ -318,18 +318,18 @@ class DemoUIHelper():
         return {
             "card": {
                 "width": "100%",
-                "height": "116px",
+                "height": "250px",
                 "max-width": "640px",
                 "background-color": "#FFFFF",
                 "border": "1px solid #CCC",
                 "padding": "20px",
                 "border-radius": "5px",
-                "border-left": f"0.5rem solid {boarder_color}",
+                #"border-left": f"0.5rem solid {boarder_color}",
                 "box-shadow": "0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15)",
                 "margin": "0px"
             },
             "title": {
-                "white-space": "nowrap",
+                "white-space": "normal",
                 "overflow": "hidden",
                 "text-overflow": "ellipsis",
                 "font-size": "17px",
@@ -339,7 +339,7 @@ class DemoUIHelper():
                 "font-weight": "normal"
             },
             "text": {
-                "white-space": "nowrap",
+                "white-space": "normal",
                 "overflow": "hidden",
                 "text-overflow": "ellipsis",
                 "font-size": "25px",
@@ -417,12 +417,12 @@ def _display_main_article_text(article_text, citation_dict, table_content_sideba
     if "Write the lead section:" in article_text:
         article_text = article_text[
                        article_text.find("Write the lead section:") + len("Write the lead section:"):]
-    if article_text[0] == '#':
+    if article_text and article_text[0] == '#':
         article_text = '\n'.join(article_text.split('\n')[1:])
     article_text = DemoTextProcessingHelper.add_inline_citation_link(article_text, citation_dict)
     # '$' needs to be changed to '\$' to avoid being interpreted as LaTeX in st.markdown()
     article_text = article_text.replace("$", "\\$")
-    stoc.from_markdown(article_text, table_content_sidebar)
+    stoc.from_markdown(article_text, table_content_sidebar, False)
 
 
 def _display_references(citation_dict):
@@ -431,12 +431,13 @@ def _display_references(citation_dict):
         selected_key = st.selectbox("Select a reference", reference_list)
         citation_val = citation_dict[reference_list.index(selected_key) + 1]
         citation_val['title'] = citation_val['title'].replace("$", "\\$")
-        st.markdown(f"**Title:** {citation_val['title']}")
-        st.markdown(f"**Url:** {citation_val['url']}")
+        st.markdown(f"<span style='font-size: 16px;'>**Title:** {citation_val['title']}</span>", unsafe_allow_html=True)
+        st.markdown(f"<span style='font-size: 16px;'>**Url:** {citation_val['url']}</span>", unsafe_allow_html=True)
         snippets = '\n\n'.join(citation_val['snippets']).replace("$", "\\$")
-        st.markdown(f"**Highlights:**\n\n {snippets}")
+        # print("snippets: ", snippets)
+        st.markdown(f"<span style='font-size: 16px; !important'>**Highlights:**\n\n {snippets}</span>", unsafe_allow_html=True)
     else:
-        st.markdown("**No references available**")
+        st.markdown("<span style='font-size: 16px;'>**No references available**</span>", unsafe_allow_html=True)
 
 
 def _display_persona_conversations(conversation_log):
@@ -464,7 +465,7 @@ def _display_persona_conversations(conversation_log):
 def _display_main_article(selected_article_file_path_dict, show_reference=True, show_conversation=True):
     article_data = DemoFileIOHelper.assemble_article_data(selected_article_file_path_dict)
 
-    with st.container(height=1000, border=True):
+    with st.container():
         table_content_sidebar = st.sidebar.expander("**Table of contents**", expanded=True)
         _display_main_article_text(article_text=article_data.get("article", ""),
                                    citation_dict=article_data.get("citations", {}),
@@ -479,7 +480,8 @@ def _display_main_article(selected_article_file_path_dict, show_reference=True, 
     # display conversation history
     if show_conversation and "conversation_log" in article_data:
         with st.expander(
-                "**STORM** is powered by a knowledge agent that proactively research a given topic by asking good questions coming from different perspectives.\n\n"
+                "**STORM** is powered by a knowledge agent that proactively research a given topic by asking good "
+                "questions coming from different perspectives.\n\n"
                 ":sunglasses: Click here to view the agent's brain**STORM**ing process!"):
             _display_persona_conversations(conversation_log=article_data.get("conversation_log", {}))
 
@@ -489,12 +491,18 @@ def get_demo_dir():
 
 
 def clear_other_page_session_state(page_index: Optional[int]):
+    # print("page_index: ", page_index)
+    # print("st.session_state: ", st.session_state)
     if page_index is None:
+        # print("if page_index: ", page_index)
         keys_to_delete = [key for key in st.session_state if key.startswith("page")]
     else:
+        # print("else page_index: ", page_index)
         keys_to_delete = [key for key in st.session_state if key.startswith("page") and f"page{page_index}" not in key]
+    # print("keys_to_delete: ", keys_to_delete)
     for key in set(keys_to_delete):
         del st.session_state[key]
+    # print("after st.session_state: ", st.session_state)
 
 
 def set_storm_runner():
@@ -505,9 +513,12 @@ def set_storm_runner():
     # configure STORM runner
     llm_configs = STORMWikiLMConfigs()
     llm_configs.init_openai_model(openai_api_key=st.secrets['OPENAI_API_KEY'], openai_type='openai')
-    llm_configs.set_question_asker_lm(OpenAIModel(model='gpt-4-1106-preview', api_key=st.secrets['OPENAI_API_KEY'],
-                                                  api_provider='openai',
-                                                  max_tokens=500, temperature=1.0, top_p=0.9))
+    llm_configs.set_question_asker_lm(
+        OpenAIModel(
+            model='gpt-4-1106-preview', api_key=st.secrets['OPENAI_API_KEY'],
+            api_provider='openai', max_tokens=500, temperature=1.0, top_p=0.9
+        )
+    )
     engine_args = STORMWikiRunnerArguments(
         output_dir=current_working_dir,
         max_conv_turn=3,
@@ -516,17 +527,36 @@ def set_storm_runner():
         retrieve_top_k=5
     )
 
-    rm = YouRM(ydc_api_key=st.secrets['YDC_API_KEY'], k=engine_args.search_top_k)
+    rm = BingSearch(bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k)
 
     runner = STORMWikiRunner(engine_args, llm_configs, rm)
     st.session_state["runner"] = runner
 
 
-def display_article_page(selected_article_name, selected_article_file_path_dict,
-                         show_title=True, show_main_article=True):
+def display_article_page(
+        selected_article_name, selected_article_file_path_dict, show_title=True, show_main_article=True
+):
+    # Use the title from the storyline stored in session state if available
+    article_title = st.session_state.get("selected_storyline_title", selected_article_name)
+    
     if show_title:
-        st.markdown(f"<h2 style='text-align: center;'>{selected_article_name.replace('_', ' ')}</h2>",
-                    unsafe_allow_html=True)
+        st.markdown(
+            f"""<h2 style='
+                text-align: center;
+                font-size: 24px; 
+                font-weight: 700; 
+                color: #056161; 
+                padding: 10px;
+                margin-bottom: 20px;
+                background: linear-gradient(45deg, rgb(85 203 219), #ffffff); 
+                border-radius: 12px;
+                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            '>
+                {selected_article_name.replace('_', ' ').title()}
+            </h2>
+            """,
+            unsafe_allow_html=True
+        )
 
     if show_main_article:
         _display_main_article(selected_article_file_path_dict)
