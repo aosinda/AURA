@@ -275,7 +275,7 @@ def create_new_article_page():
             demo_util.set_storm_runner()
 
         st.session_state["page3_current_working_dir"] = current_working_dir
-        status = st.status("I am brain**STORM**ing now to research the topic. (This may take 2-3 minutes.)")
+        status = st.status("I am brainstorming now to research the topic. (This may take 2-3 minutes.)")
         st_callback_handler = demo_util.StreamlitCallbackHandler(status)
         with status:
             try:
