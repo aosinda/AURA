@@ -103,7 +103,6 @@ class stoc:
         """
         st.markdown(custom_css, unsafe_allow_html=True)
 
-        print("text: ", text)
         if write_text:
             st.write(text)
         else:
