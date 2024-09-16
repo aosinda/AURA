@@ -67,7 +67,7 @@ class StorylineDetail(BaseModel):
     angle: str = Field(description="Sharp journalistic angle of the storyline with a speciic focus.")
     title: str = Field(description="Short and sharp title of the storyline. Only one sentence is allowed and avoid splitting it with semicolon.")
     storyline_type: StorylineType = Field(description="The type of storyline. If other is selceted, explain what category it is")
-    newsworthiness: List[NewsworthinessCriteria] = Field(description="List of newsworthiness criteria that apply. You need to explain how they apply.")
+    newsworthiness: List[NewsworthinessCriteria] = Field(description="List of newsworthiness criteria that apply and an argument for how they apply.")
     elaboration: str = Field(description="Elaboration on the storyline, including what should be researched to gather information for a journalistic article.")
 
     class Config:
@@ -101,6 +101,7 @@ def generate_storyline(doc: str) -> Storylines:
                     "Your goal is to craft storylines that not only present the facts but also pose provocative questions and highlight interconnectedness between issues. "
                     "Explore potential controversies, such as political motivations behind scientific findings or economic dilemmas faced by nations. "
                     "Balance the storyline by considering both breakthrough and potential ethical concerns, driving an engaging narrative that prompts critical thinking."
+                    "When listing newsworhiness criteria, you need to explain why they apply and an argument from the text for how they apply. for example: Impact: The discovery has the potential to imacp x amount of people with this condition it says in the report."
                 )},
                 {"role": "user", "content": f"Please analyze the following document: {doc}"}
             ],
