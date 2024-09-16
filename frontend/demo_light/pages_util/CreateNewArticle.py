@@ -76,13 +76,17 @@ def create_new_article_page():
             padding: 0;
             # float: right;
             background-color: white;
+            display: flex; /* Use Flexbox */
+            justify-content: center; /* Center the button horizontally */
+            align-items: center; /* Center vertically if needed */
         }
         [data-testid='stFileUploader'] section > button {
-            width: 100%;
+            width: 60%;
             padding: 15px;
-            background-color: #06908F;
+            background-color: #F56329;
             color: white !important; /* Force white text */
-            border-radius: 20px; /* Rounded corners */
+            font-size: x-large;
+            border-radius: 50px; /* Rounded corners */
             border: 2px solid;
             border-image-slice: 1;
             border-width: 3px;
@@ -174,7 +178,7 @@ def create_new_article_page():
             st.session_state["page3_topic"] = st.text_input(
                 label='page3_topic',
                 label_visibility="collapsed",
-                placeholder="Enter the topic here"
+                placeholder="or Enter your text here..."
             )
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -226,7 +230,7 @@ def create_new_article_page():
     if st.session_state.get("page3_write_article_state") == "storyline_selected":
         st.text_input(
             label='Topic Option', value=st.session_state["selected_storyline_option"],
-            label_visibility="collapsed", placeholder="Enter the topic here"
+            label_visibility="collapsed", placeholder="or Enter the text here"
         )
         st.text_input(
             label='Storyline Elaboration', value=st.session_state["selected_storyline_elaboration"],

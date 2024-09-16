@@ -545,7 +545,7 @@ def display_article_page(selected_article_name, selected_article_file_path_dict,
                 color: #056161; 
                 padding: 10px;
                 margin-bottom: 20px;
-                background: linear-gradient(45deg, #e0f7fa, #ffffff); 
+                background: linear-gradient(45deg, rgb(85 203 219), #ffffff); 
                 border-radius: 12px;
                 box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
             '>

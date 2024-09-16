@@ -108,7 +108,7 @@ class stoc:
         else:
             st.markdown(
                 f"""<div style='
-                    background: linear-gradient(45deg, #e0f7fa, #ffffff); 
+                    background: linear-gradient(to right, rgb(85 203 219), #ffffff); 
                     padding: 30px;
                     margin-top: 20px;
                     border-radius: 15px;
@@ -116,6 +116,7 @@ class stoc:
                     color: #333;
                     font-size: 18px;
                     line-height: 1.6;
+                    text-align: justify; /* Justify the text */
                 '>
                     {text}
                 </div>
