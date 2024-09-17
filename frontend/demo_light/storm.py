@@ -74,7 +74,7 @@ def main():
         color: white !important; /* Force white text */
         padding: 12px 20px;
         font-size: 18px;
-        text-align: left;
+        text-align: center;
         width: 100%;
         display: block;
         margin-left: 0;

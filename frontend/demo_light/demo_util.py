@@ -480,9 +480,9 @@ def _display_main_article(selected_article_file_path_dict, show_reference=True, 
     # display conversation history
     if show_conversation and "conversation_log" in article_data:
         with st.expander(
-                "**STORM** is powered by a knowledge agent that proactively research a given topic by asking good "
+                "AURA is powered by a LLM knowledge agent that proactively research a given topic by asking good "
                 "questions coming from different perspectives.\n\n"
-                ":sunglasses: Click here to view the agent's brain**STORM**ing process!"):
+                "Click here to view the agent's brainstorming process!"):
             _display_persona_conversations(conversation_log=article_data.get("conversation_log", {}))
 
 
