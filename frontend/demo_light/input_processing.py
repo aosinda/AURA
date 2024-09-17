@@ -55,16 +55,15 @@ def save_uploaded_file(uploaded_file, save_path):
 
 
 def extract_data_from_pdf(pdf_path, format='text', codec='utf-8', password=''):
-    print(type(pdf_path))
     text = ""
     try:
         max_pages = 0
         caching = True
         page_nos = set()
-        print(
-            type(pdf_path), isinstance(pdf_path, io.BytesIO),
-            isinstance(pdf_path, st.runtime.uploaded_file_manager.UploadedFile)
-        )
+        # print(
+        #     type(pdf_path), isinstance(pdf_path, io.BytesIO),
+        #     isinstance(pdf_path, st.runtime.uploaded_file_manager.UploadedFile)
+        # )
         if isinstance(pdf_path, io.BytesIO):
             for page in PDFPage.get_pages(
                     pdf_path, page_nos, maxpages=max_pages, password=password, caching=caching, check_extractable=True

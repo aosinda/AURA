@@ -53,10 +53,11 @@ def handle_uploaded_file(uploaded_file, file_extension):
 
 def display_storylines(storylines):
     st.markdown(
-        "<p style='font-size: 18px; font-weight: bold;'>Here are three possible storylines. Please chose one for AURA "
-        "to research thoroughly:</p>",
+        "<p style='font-size: 18px; font-weight: bold; color: #06908F;'>Here are three possible storylines. "
+        "Please chose one for AURA to research thoroughly:</p>",
         unsafe_allow_html=True
     )
+    st.write("---")
     for idx, storyline in enumerate([storylines.storyline_1, storylines.storyline_2, storylines.storyline_3], 1):
         storyline_elaboration = f"**{storyline.title}**\n\n{storyline.elaboration}"
         storyline_option = (
@@ -96,8 +97,8 @@ def create_new_article_page():
     <style>
         [data-testid='stFileUploader'] {
             width: 100%; /* Make the file uploader wider */
-            max-width: 400px; /* Constrain to a max width */
-            margin-top: 20px;
+            # max-width: 400px; /* Constrain to a max width */
+            # margin-top: 20px;
         }
         [data-testid='stFileUploader'] section {
             padding: 0;
@@ -120,6 +121,8 @@ def create_new_article_page():
             # border-image-source: linear-gradient(45deg, #ff6ec4, #7873f5); /* Gradient border */
             transition: transform 0.3s ease;
             text-align: center;
+            justify-content: center; /* Center the button horizontally */
+            align-items: center; /* Center vertically if needed */
         }
         [data-testid='stFileUploader'] section > button:hover {
             border-color: #08AFAF !important; /* Force darker blue on hover */
@@ -144,8 +147,13 @@ def create_new_article_page():
             display: none;
         }
         [data-testid='stFileUploader'] section + div {
-            float: right;
-            padding-top: 0;
+            float: center;
+            # padding-top: 0;
+        }
+        [data-testid='stUploadedFile'] {
+            background-color: #b9f7f7;
+            padding: 1px;
+            color: #F56329;
         }
         [data-testid='stTextInput'] {
             width: 100%; /* Make the file uploader wider */
@@ -216,15 +224,19 @@ def create_new_article_page():
     if "page3_write_article_state" not in st.session_state:
         st.session_state["page3_write_article_state"] = "not_started"
 
-    st.markdown("""
-    <h2 style='text-align: center;'>Create a New Research Report</h2>
-    <p style='text-align: center; font-size: 16px; color: #555;'>
-        Upload a file or paste your text (e.g., a press release or story draft).<br>
-        AURA will suggest three potential newsworthy angles and provide a detailed research report.
-    </p>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        """<h2 style='text-align: center; color: #06908F;'>Create a New Research Report</h2>""",
+        unsafe_allow_html=True
+    )
 
     if st.session_state["page3_write_article_state"] == "not_started":
+        st.markdown(
+            """<p style='text-align: center; font-size: 16px; color: #F56329;'>
+                Upload a file or paste your text (e.g., a press release or story draft).<br>
+                AURA will suggest three potential newsworthy angles and provide a detailed research report.
+            </p>""",
+            unsafe_allow_html=True
+        )
         _, search_form_column, _ = st.columns([2, 5, 2])
         with search_form_column:
             st.markdown("<div class='centered'>", unsafe_allow_html=True)
@@ -234,10 +246,11 @@ def create_new_article_page():
                 key="unique_key_for_file_uploader",
                 label_visibility="collapsed"
             )
-            st.session_state["page3_topic"] = st.text_input(
+            st.session_state["page3_topic"] = st.text_area(
                 label='page3_topic',
                 label_visibility="collapsed",
-                placeholder="or Enter your text here..."
+                placeholder="or Enter your text here...",
+                height=100
             )
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -258,7 +271,10 @@ def create_new_article_page():
             # with st.spinner("Processing and uploading documents..."):
             with st.spinner(""):
                 loading_placeholder = st.empty()
-                loading_placeholder.markdown('<div class="custom-spinner-text">Processing and uploading documents...</div>', unsafe_allow_html=True)
+                loading_placeholder.markdown(
+                    '<div class="custom-spinner-text">Processing and uploading documents...</div>',
+                    unsafe_allow_html=True
+                )
                 if isinstance(uploaded_file, io.BytesIO):
                     mimeType = mime.from_buffer(uploaded_file.getvalue())
                     ext = MIME_TYPE_EXTENSIONS[mimeType] if mimeType in MIME_TYPE_EXTENSIONS else ""
@@ -391,7 +407,7 @@ def create_new_article_page():
     if st.session_state["page3_write_article_state"] == "prepare_to_show_result":
         _, show_result_col, _ = st.columns([4, 3, 4])
         with show_result_col:
-            if st.button("show final article", key="show_final_article"):
+            if st.button("Show Final Article", key="show_final_article"):
                 st.session_state["page3_write_article_state"] = "completed"
                 st.rerun()
 
