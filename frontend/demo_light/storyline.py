@@ -45,22 +45,44 @@ class StorylineType(Enum):
     CASE_STUDIES = "Case Studies"
     OTHER = "Other"
 
-# Define the NewsworthinessCriteria Enum
-class NewsworthinessCriteria(Enum):
-    RELEVANCE = "Relevance to contemporary issues"
-    IMPACT = "Potential societal impact"
-    CONTROVERSY = "Potential for controversy"
-    ACCESSIBILITY = "Ease of understanding by a general audience"
-    TIMELINESS = "Relation to current events"
-    NOVELTY = "Uniqueness or originality"
-    PROXIMITY = "Closeness to the target audience"
-    HUMAN_INTEREST = "Emotional appeal to the audience"
-    PROMINENCE = "Involvement of prominent figures or entities"
-    CONFLICT = "Presence of disagreement or struggle"
-    CONSEQUENCE = "Long-term effects or future implications"
-    PUBLIC_INTEREST = "Alignment with public good or general concern"
-    FEASIBILITY = "Practicality of covering the topic"
-    OTHER = "Other"
+# # Define the NewsworthinessCriteria Enum
+# class NewsworthinessCriteria(Enum):
+#     RELEVANCE = "Relevance to contemporary issues"
+#     IMPACT = "Potential societal impact"
+#     CONTROVERSY = "Potential for controversy"
+#     ACCESSIBILITY = "Ease of understanding by a general audience"
+#     TIMELINESS = "Relation to current events"
+#     NOVELTY = "Uniqueness or originality"
+#     PROXIMITY = "Closeness to the target audience"
+#     HUMAN_INTEREST = "Emotional appeal to the audience"
+#     PROMINENCE = "Involvement of prominent figures or entities"
+#     CONFLICT = "Presence of disagreement or struggle"
+#     CONSEQUENCE = "Long-term effects or future implications"
+#     PUBLIC_INTEREST = "Alignment with public good or general concern"
+#     FEASIBILITY = "Practicality of covering the topic"
+#     OTHER = "Other"
+
+class NewsworthinessCriteria(BaseModel):
+    criteria: str = Field(
+        description=(
+            "The newsworthiness criteria that applies and an argument for how they apply. "
+            "Examples of criteria include: "
+            "Relevance: Relevance to contemporary issues. "
+            "Impact: Potential societal impact. "
+            "Controversy: Potential for controversy. "
+            "Accessibility: Ease of understanding by a general audience. "
+            "Timeliness: Relation to current events. "
+            "Novelty: Uniqueness or originality. "
+            "Proximity: Closeness to the target audience. "
+            "Human Interest: Emotional appeal to the audience. "
+            "Prominence: Involvement of prominent figures or entities. "
+            "Conflict: Presence of disagreement or struggle. "
+            "Consequence: Long-term effects or future implications. "
+            "Public Interest: Alignment with public good or general concern. "
+            "Feasibility: Practicality of covering the topic. "
+            "Other: Other criteria that may apply."
+        )
+    )
 
 # Define the StorylineDetail model
 class StorylineDetail(BaseModel):

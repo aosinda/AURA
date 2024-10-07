@@ -64,7 +64,8 @@ def display_storylines(storylines):
             f"**Type:** {storyline.storyline_type.value}\n\n"
             f"**Angle:** {storyline.angle}\n\n"
             f"**Newsworthiness:**\n" +
-            "\n".join([f"- {criteria.value}" for criteria in storyline.newsworthiness])
+            "\n".join([f"- **{criteria.criteria.split(':')[0]}**: {criteria.criteria.split(':', 1)[1]}" for criteria in storyline.newsworthiness])
+
         )
 
         st.markdown(storyline_elaboration, unsafe_allow_html=True)
