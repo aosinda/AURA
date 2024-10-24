@@ -11,7 +11,7 @@ from ...utils import ArticleTextProcessing
 class StormOutlineGenerationModule(OutlineGenerationModule):
     """
     The interface for outline generation stage. Given topic, collected information from knowledge
-    curation stage, generate outline for the article.
+    curation stage, generate outline for a journalistic report.
     """
 
     def __init__(self,
@@ -64,7 +64,7 @@ class StormOutlineGenerationModule(OutlineGenerationModule):
 
 
 class WriteOutline(dspy.Module):
-    """Generate the outline for the Wikipedia page."""
+    """Generate the outline for ta journalistic report"""
 
     def __init__(self, engine: Union[dspy.dsp.LM, dspy.dsp.HFModel]):
         super().__init__()
@@ -79,7 +79,7 @@ class WriteOutline(dspy.Module):
             if 'topic you' in turn.agent_utterance.lower() or 'topic you' in turn.user_utterance.lower():
                 continue
             trimmed_dlg_history.append(turn)
-        conv = '\n'.join([f'Wikipedia Writer: {turn.user_utterance}\nExpert: {turn.agent_utterance}' for turn in
+        conv = '\n'.join([f'journalist: {turn.user_utterance}\nExpert: {turn.agent_utterance}' for turn in
                           trimmed_dlg_history])
         conv = ArticleTextProcessing.remove_citations(conv)
         conv = ArticleTextProcessing.limit_word_count_preserve_newline(conv, 5000)
@@ -98,7 +98,7 @@ class WriteOutline(dspy.Module):
 
 
 class WritePageOutline(dspy.Signature):
-    """Write an outline for a Wikipedia page.
+    """Write an outline for a journalistic research report.
         Here is the format of your writing:
         1. Use "#" Title" to indicate section title, "##" Title" to indicate subsection title, "###" Title" to indicate subsubsection title, and so on.
         2. Do not include other information.
@@ -106,7 +106,7 @@ class WritePageOutline(dspy.Signature):
     """
 
     topic = dspy.InputField(prefix="The topic you want to write: ", format=str)
-    outline = dspy.OutputField(prefix="Write the Wikipedia page outline:\n", format=str)
+    outline = dspy.OutputField(prefix="Write the journalistic research report outline:\n", format=str)
 
 
 class NaiveOutlineGen(dspy.Module):
@@ -123,7 +123,7 @@ class NaiveOutlineGen(dspy.Module):
 
 
 class WritePageOutlineFromConv(dspy.Signature):
-    """Improve an outline for a Wikipedia page. You already have a draft outline that covers the general information. Now you want to improve it based on the information learned from an information-seeking conversation to make it more informative.
+    """Improve an outline for the journalistic research report. You already have a draft outline that covers the general information. Now you want to improve it based on the information learned from an information-seeking conversation to make it more informative.
         Here is the format of your writing:
         1. Use "#" Title" to indicate section title, "##" Title" to indicate subsection title, "###" Title" to indicate subsubsection title, and so on.
         2. Do not include other information.
@@ -134,6 +134,6 @@ class WritePageOutlineFromConv(dspy.Signature):
     conv = dspy.InputField(prefix="Conversation history:\n", format=str)
     old_outline = dspy.OutputField(prefix="Current outline:\n", format=str)
     outline = dspy.OutputField(
-        prefix='Write the Wikipedia page outline (Use "#" Title" to indicate section title, "##" Title" to indicate subsection title, ...):\n',
+        prefix='Write the journalistic research report  outline (Use "#" Title" to indicate section title, "##" Title" to indicate subsection title, ...):\n',
         format=str
     )
