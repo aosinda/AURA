@@ -38,7 +38,7 @@ def get_wiki_page_title_and_toc(url):
 
 
 class FindRelatedTopic(dspy.Signature):
-    """I'm writing a Wikipedia page for a topic mentioned below. Please identify and recommend some Wikipedia pages on closely related subjects. I'm looking for examples that provide insights into interesting aspects commonly associated with this topic, or examples that help me understand the typical content and structure included in Wikipedia pages for similar topics.
+    """I'm writing journalistic research report for a topic mentioned below. Please identify and recommend some Wikipedia pages on closely related subjects. I'm looking for examples that provide insights into interesting aspects commonly associated with this topic, or examples that help me understand the typical content and structure included in Wikipedia pages for similar topics.
      Please list the urls in separate lines."""
 
     topic = dspy.InputField(prefix='Topic of interest:', format=str)
@@ -46,7 +46,7 @@ class FindRelatedTopic(dspy.Signature):
 
 
 class GenPersona(dspy.Signature):
-    """You need to select a group of Wikipedia editors who will work together to create a comprehensive article on the topic. Each of them represents a different perspective, role, or affiliation related to this topic. You can use other Wikipedia pages of related topics for inspiration. For each editor, add a description of what they will focus on.
+    """You need to select a group of journalistic editors who will work together to create a comprehensive article on the topic. Each of them represents a different perspective, role, or affiliation related to this topic. You can use other Wikipedia pages of related topics for inspiration. For each editor, add a description of what they will focus on.
     Give your answer in the following format: 1. short summary of editor 1: description\n2. short summary of editor 2: description\n...
     """
 
@@ -133,6 +133,6 @@ class StormPersonaGenerator():
                 and up to `max_num_persona` additional personas generated based on the topic.
         """
         personas = self.create_writer_with_persona(topic=topic)
-        default_persona = 'Basic fact writer: Basic fact writer focusing on broadly covering the basic facts about the topic.'
+        default_persona = 'Basic fact writer: Basic fact writer focusing on covering the most important facts about the topic.'
         considered_personas = [default_persona] + personas.personas[:max_num_persona]
         return considered_personas

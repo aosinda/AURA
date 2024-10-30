@@ -54,10 +54,10 @@ class STORMWikiLMConfigs(LMConfigs):
         if openai_type and openai_type == 'openai':
             self.conv_simulator_lm = OpenAIModel(model='gpt-3.5-turbo-instruct',
                                                  max_tokens=500, **openai_kwargs)
-            self.question_asker_lm = OpenAIModel(model='gpt-3.5-turbo',
+            self.question_asker_lm = OpenAIModel(model='gpt-4o-mini',
                                                  max_tokens=500, **openai_kwargs)
             # 1/12/2024: Update gpt-4 to gpt-4-1106-preview. (Currently keep the original setup when using azure.)
-            self.outline_gen_lm = OpenAIModel(model='gpt-4-0125-preview',
+            self.outline_gen_lm = OpenAIModel(model='gpt-4o',
                                               max_tokens=400, **openai_kwargs)
             self.article_gen_lm = OpenAIModel(model='gpt-4o-2024-05-13',
                                               max_tokens=700, **openai_kwargs)

@@ -23,7 +23,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class ConvSimulator(dspy.Module):
-    """Simulate a conversation between a Wikipedia writer with specific persona and an expert."""
+    """Simulate a conversation between a journalist with specific persona and an expert."""
 
     def __init__(self, topic_expert_engine: Union[dspy.dsp.LM, dspy.dsp.HFModel],
                  question_asker_engine: Union[dspy.dsp.LM, dspy.dsp.HFModel],
@@ -97,7 +97,7 @@ class WikiWriter(dspy.Module):
 
 
 class AskQuestion(dspy.Signature):
-    """You are an experienced Wikipedia writer. You are chatting with an expert to get information for the topic you want to contribute. Ask good questions to get more useful information relevant to the topic.
+    """You are an experienced awardwinning journalist. You are chatting with an expert to get information for the topic you want to contribute. Ask good, deep, very focused questions to get more useful information relevant to the topic.
     When you have no more question to ask, say "Thank you so much for your help!" to end the conversation.
     Please only ask a question at a time and don't ask what you have asked before. Your questions should be related to the topic you want to write."""
 
@@ -107,13 +107,14 @@ class AskQuestion(dspy.Signature):
 
 
 class AskQuestionWithPersona(dspy.Signature):
-    """You are an experienced Wikipedia writer and want to edit a specific page. Besides your identity as a Wikipedia writer, you have specific focus when researching the topic.
+    """You are an experienced awardwinning journalist and want to edit a specific investigative research report for a story. 
+    Besides your identity as a journalist, you have specific focus when researching the topic.
     Now, you are chatting with an expert to get information. Ask good questions to get more useful information.
     When you have no more question to ask, say "Thank you so much for your help!" to end the conversation.
     Please only ask a question at a time and don't ask what you have asked before. Your questions should be related to the topic you want to write."""
 
     topic = dspy.InputField(prefix='Topic you want to write: ', format=str)
-    persona = dspy.InputField(prefix='Your persona besides being a Wikipedia writer: ', format=str)
+    persona = dspy.InputField(prefix='Your persona besides being a journalist: ', format=str)
     conv = dspy.InputField(prefix='Conversation history:\n', format=str)
     question = dspy.OutputField(format=str)
 
@@ -132,7 +133,7 @@ class QuestionToQuery(dspy.Signature):
 
 
 class AnswerQuestion(dspy.Signature):
-    """You are an expert who can use information effectively. You are chatting with a Wikipedia writer who wants to write a Wikipedia page on topic you know. You have gathered the related information and will now use the information to form a response.
+    """You are an expert who can use information effectively. You are being interviewed by a journalist who wants to write story on topic you know. You have gathered the related information and will now use the information to form a response.
     Make your response as informative as possible and make sure every sentence is supported by the gathered information. If [Gathered information] is not related to he [Topic] and [Question], output "Sorry, I don't have enough information to answer the question."."""
 
     topic = dspy.InputField(prefix='Topic you are discussing about:', format=str)

@@ -130,7 +130,7 @@ class ConvToSection(dspy.Module):
 
 
 class WriteSection(dspy.Signature):
-    """Write a Wikipedia section based on the collected information.
+    """Write a journalistic research report section based on the collected information.
 
         Here is the format of your writing:
             1. Use "#" Title" to indicate section title, "##" Title" to indicate subsection title, "###" Title" to indicate subsubsection title, and so on.
