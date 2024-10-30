@@ -54,14 +54,20 @@ def handle_uploaded_file(uploaded_file, file_extension):
 def display_storylines(storylines):
     st.markdown(
         "<p style='font-size: 18px; font-weight: bold; color: #06908F; margin-top: 40px;'>Here are three possible storylines. "
-        "Please chose one for AURA to research thoroughly:</p>",
+        "Please chose one for AURA to initiate the research for you.<br>"
+        "Not seeing what you like? Scroll down and adjust them as you wish.</p>",
         unsafe_allow_html=True,
     )
     st.write("---")
     for idx, storyline in enumerate(
         [storylines.storyline_1, storylines.storyline_2, storylines.storyline_3], 1
     ):
-        storyline_elaboration = f"**{storyline.title}**\n\n{storyline.elaboration}"
+        storyline_elaboration = (
+            f"**{storyline.title}**\n\n"
+            f"*{storyline.subheadline}*\n\n"  #added subheadline
+            f"{storyline.elaboration}"
+        )
+
         storyline_option = (
             f"**Type:** {storyline.storyline_type.value}\n\n"
             f"**Angle:** {storyline.angle}\n\n"
@@ -81,6 +87,7 @@ def display_storylines(storylines):
             f"Select the storyline: {storyline.title}", key=f"select_storyline_{idx}"
         ):
             st.session_state["selected_storyline_title"] = storyline.title
+            st.session_state["selected_storyline_subheadline"] = storyline.subheadline
             st.session_state["selected_storyline_elaboration"] = storyline_elaboration
             st.session_state["selected_storyline_option"] = storyline_option
             st.session_state["page3_write_article_state"] = "storyline_selected"
@@ -88,8 +95,9 @@ def display_storylines(storylines):
         st.write("---")
 
     st.markdown(
-        "<p style='font-size: 16px;'>If none of these storylines suit you, please describe what kind of storyline you are looking for:</p>",
-        unsafe_allow_html=True,
+    "<p style='font-size: 16px;'><strong>Want to generate new storylines? Please describe what you are looking for.</strong><br>"
+    "<em>For example: Economic perspective, social context, etc.</em></p>",
+    unsafe_allow_html=True,
     )
     user_feedback = st.text_input(
         "Please enter the changes you are looking for:", key="user_feedback"
