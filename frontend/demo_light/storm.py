@@ -7,8 +7,12 @@ import demo_util
 script_dir = os.path.dirname(os.path.abspath(__file__))
 wiki_root_dir = os.path.dirname(os.path.dirname(script_dir))
 
+
+favicon_path = os.path.join(wiki_root_dir, "assets", "icon.png")
+
 # Set page configuration at the top level
-st.set_page_config(layout='wide')
+st.set_page_config(layout="wide", page_title="AURA", page_icon=favicon_path)
+
 
 def main():
     global database
@@ -19,7 +23,7 @@ def main():
         for key, value in st.secrets.items():
             if type(value) == str:
                 os.environ[key] = value
-    
+
     # Initialize session state variables
     if "selected_article_index" not in st.session_state:
         st.session_state["selected_article_index"] = 0
@@ -30,7 +34,8 @@ def main():
         st.rerun()
 
     # Custom CSS to adjust sidebar, buttons, and main content
-    st.markdown("""
+    st.markdown(
+        """
     <style>
     /* Change sidebar background color */
     [data-testid="stSidebar"] {
@@ -112,10 +117,13 @@ def main():
 
 
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # Header for the app
-    st.markdown("""
+    st.markdown(
+        """
     <h1 style='
         font-size: 48px; 
         font-weight: bold; 
@@ -127,20 +135,28 @@ def main():
     '>
         AURA
     </h1>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # Sidebar layout
     with st.sidebar:
         create_article_icon = "➕"
         my_library_icon = "📄"
-        
+
         # Update button labels
         if st.button(
-            f"{create_article_icon} Create New Research Report", key="create_article_button", use_container_width=True
+            f"{create_article_icon} Create New Research Report",
+            key="create_article_button",
+            use_container_width=True,
         ):
             st.session_state.update({"selected_page": "Create New Article"})
-        
-        if st.button(f"{my_library_icon} My Library", key="my_articles_button", use_container_width=True):
+
+        if st.button(
+            f"{my_library_icon} My Library",
+            key="my_articles_button",
+            use_container_width=True,
+        ):
             st.session_state.update({"selected_page": "My Articles"})
 
     # Main content display based on the selected page
