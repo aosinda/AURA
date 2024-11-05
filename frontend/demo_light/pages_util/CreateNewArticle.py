@@ -140,7 +140,7 @@ def create_new_article_page():
         [data-testid='stFileUploader'] section > button {
             width: 60%;
             padding: 15px;
-            background-color: #F56329;
+            background-color: #5A8487;
             color: white !important; /* Force white text */
             font-size: x-large;
             border-radius: 50px; /* Rounded corners */
@@ -182,7 +182,7 @@ def create_new_article_page():
         [data-testid='stUploadedFile'] {
             background-color: #b9f7f7;
             padding: 1px;
-            color: #F56329;
+            color: #5A8487;
         }
         [data-testid='stTextInput'] {
             width: 100%; /* Make the file uploader wider */
@@ -250,17 +250,27 @@ def create_new_article_page():
     st.markdown(css, unsafe_allow_html=True)
     demo_util.clear_other_page_session_state(page_index=3)
 
+    uploaded_file = None
     if "page3_write_article_state" not in st.session_state:
         st.session_state["page3_write_article_state"] = "not_started"
+        st.session_state["file_or_text_uploaded"] = False
+    # elif st.session_state["page3_write_article_state"] == "not_started":
+    #     st.session_state["file_or_text_uploaded"] = False
 
-    st.markdown(
-        """<h2 style='text-align: center; color: #06908F;'>Create a New Research Report</h2>""",
-        unsafe_allow_html=True,
-    )
+    if st.session_state.get("unique_key_for_file_uploader") or st.session_state.get("uploaded_file_page"):
+        st.session_state["file_or_text_uploaded"] = True
 
-    if st.session_state["page3_write_article_state"] == "not_started":
+    uploader_placeholder = st.empty()
+
+    with uploader_placeholder.container():
         st.markdown(
-            """<p style='text-align: center; font-size: 16px; color: #F56329;'>
+            """<h2 style='text-align: center; color: #06908F;'>Create a New Research Report</h2>""",
+            unsafe_allow_html=True,
+        )
+
+        # if st.session_state["page3_write_article_state"] == "not_started":
+        st.markdown(
+            """<p style='text-align: center; font-size: 16px; color: #29423c;'>
                 Upload a file or paste your text (e.g., a press release or story draft).<br>
                 AURA will suggest three potential newsworthy angles and provide a detailed research report.
             </p>""",
@@ -268,29 +278,50 @@ def create_new_article_page():
         )
         _, search_form_column, _ = st.columns([2, 5, 2])
         with search_form_column:
-            st.markdown("<div class='centered'>", unsafe_allow_html=True)
-            uploaded_file = st.file_uploader(
-                "Upload File",
-                type=["csv", "pdf", "doc", "docx", "txt", "rtf", "html"],
-                key="unique_key_for_file_uploader",
-                label_visibility="collapsed",
-            )
-            st.session_state["page3_topic"] = st.text_area(
-                label="page3_topic",
-                label_visibility="collapsed",
-                placeholder="or Enter your text here...",
-                height=100,
-            )
-            st.markdown("</div>", unsafe_allow_html=True)
+            # uploader_placeholder = st.empty()
+            if not st.session_state["file_or_text_uploaded"]:
+                # with uploader_placeholder.container():
+                st.markdown("<div class='centered'>", unsafe_allow_html=True)
+                uploaded_file = st.file_uploader(
+                    "Upload File",
+                    type=["csv", "pdf", "doc", "docx", "txt", "rtf", "html"],
+                    key="unique_key_for_file_uploader",
+                    label_visibility="collapsed",
+                )
 
-            if uploaded_file or st.session_state["page3_topic"].strip():
-                st.session_state["uploaded_file"] = uploaded_file
-                st.session_state["page3_write_article_state"] = "initiated"
+                if uploaded_file is not None:
+                    st.session_state["uploaded_file_page"] = uploaded_file
+                    if st.session_state.get("unique_key_for_file_uploader"):
+                        del st.session_state["unique_key_for_file_uploader"]
+                    st.session_state["file_or_text_uploaded"] = True
+
+                st.session_state["page3_topic"] = st.text_area(
+                    label="page3_topic",
+                    label_visibility="collapsed",
+                    placeholder="or Enter your text here...",
+                    height=100,
+                )
+                st.markdown("</div>", unsafe_allow_html=True)
+
+    if st.session_state.get("file_or_text_uploaded"):
+        uploader_placeholder.empty()
+        if st.session_state.get("uploaded_file_page"):
+            st.session_state["uploaded_file_page"] = st.session_state.get("uploaded_file_page")
+            if st.session_state.get("unique_key_for_file_uploader"):
+                del st.session_state["unique_key_for_file_uploader"]
+        elif st.session_state.get("unique_key_for_file_uploader"):
+            st.session_state["uploaded_file_page"] = st.session_state.get("unique_key_for_file_uploader")
+            if st.session_state.get("unique_key_for_file_uploader"):
+                del st.session_state["unique_key_for_file_uploader"]
+        st.session_state["page3_write_article_state"] = "initiated"
+        # st.rerun()
 
     if st.session_state["page3_write_article_state"] == "initiated":
         uploaded_file = st.session_state.get(
-            "uploaded_file"
+            "uploaded_file_page"
         )  # Retrieve the file from session state
+        if st.session_state.get("uploaded_file_page"):
+            del st.session_state["uploaded_file_page"]
         # print(
         #     "create new article",
         #     type(uploaded_file), isinstance(uploaded_file, io.BytesIO),

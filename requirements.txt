@@ -1,8 +1,8 @@
 #pytidylib6==0.2.2
 #PyMuPDF==1.24.9
 deprecation==2.1.0
-dspy==0.1.5
-dspy-ai==2.4.5
+dspy==2.5.25
+dspy-ai==2.4.9
 extra-streamlit-components==0.1.60
 fold-to-ascii==1.0.2.post1
 knowledge-storm==1.0.0
