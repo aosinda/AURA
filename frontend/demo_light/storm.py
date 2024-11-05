@@ -160,6 +160,8 @@ def main():
             use_container_width=True,
         ):
             st.session_state.update({"selected_page": "My Articles"})
+            if st.session_state.get("page3_write_article_state"):
+                del st.session_state["page3_write_article_state"]
 
     # Main content display based on the selected page
     if st.session_state.get("selected_page") == "My Articles":
