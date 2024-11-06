@@ -1,3 +1,5 @@
+from time import sleep
+
 import math
 import os
 import traceback
@@ -90,12 +92,12 @@ def display_storylines(storylines):
         if st.button(
             f"Select the storyline: {storyline.title}", key=f"select_{button_key}_storyline_{idx}"
         ):
+            st.session_state["page3_write_article_state"] = "storyline_selected"
             st.session_state["selected_storyline_title"] = storyline.title
             st.session_state["selected_storyline_subheadline"] = storyline.subheadline
             st.session_state["selected_storyline_elaboration"] = storyline_elaboration
             st.session_state["selected_storyline_option"] = storyline_option
-            st.session_state["page3_write_article_state"] = "storyline_selected"
-            st.rerun()
+            # st.rerun()
         st.write("---")
 
     # print("st.session_state", st.session_state)
@@ -105,17 +107,54 @@ def display_storylines(storylines):
         "<em>For example: Economic perspective, social context, etc.</em></p>",
         unsafe_allow_html=True,
         )
-        user_feedback = st.text_input(
-            "Please enter the changes you are looking for:", key="user_feedback"
+        # user_feedback = st.text_input(
+        #     "Please enter the changes you are looking for:", key="user_feedback"
+        # )
+        # user_feedback = st.text_area(
+        #     label="Please enter the changes you are looking for",
+        #     value=st.session_state["selected_storyline_option"],
+        #     # label_visibility="collapsed", placeholder="Enter the text here",
+        #     height=calculate_height(st.session_state["selected_storyline_option"]),
+        # )
+
+        storyline_requested_placeholder = st.empty()
+
+        def action_user_feedback():
+            storyline_requested_placeholder.empty()
+
+        user_feedback = st.text_area(
+            key="user_feedback",
+            label="Enter the changes you are looking for",
+            label_visibility="collapsed",
+            placeholder="Enter the changes you are looking for",
+            height=100,
+            on_change=action_user_feedback
         )
 
-        if user_feedback:
+        # print("user_feedback", user_feedback)
+
+        # print("st.session_state", st.session_state)
+        # if "user_feedback" in st.session_state:
+        if user_feedback.strip():
             st.session_state["page3_write_article_state"] = "storyline_requested"
             # if st.session_state.get("file_or_text_uploaded"):
             #     st.session_state["file_or_text_uploaded"] = False
+        elif user_feedback:
+            with storyline_requested_placeholder.container():
+                st.markdown(
+                    "<p style='color:red;'>Please enter any text to proceed with requested storyline</p>",
+                    unsafe_allow_html=True
+                )
 
         if st.button("Generate Requested Storylines", key="generate_requested_storylines"):
-            st.session_state["page3_write_article_state"] = "storyline_requested"
+            if user_feedback.strip():
+                st.session_state["page3_write_article_state"] = "storyline_requested"
+            else:
+                with storyline_requested_placeholder.container():
+                    st.markdown(
+                        "<p style='color:red;'>Please enter any text to proceed with requested storyline</p>",
+                        unsafe_allow_html=True
+                    )
             # if st.session_state.get("file_or_text_uploaded"):
             #     st.session_state["file_or_text_uploaded"] = False
             # st.rerun()
@@ -422,13 +461,18 @@ def create_new_article_page():
                 logging.error(traceback.format_exc())
             # loading_placeholder.empty()
 
+    # if st.session_state["page3_write_article_state"] == "select_storyline":
+    #     print("before select_storyline st.session_state: ", st.session_state)
+    #     sleep(2)
+    #     print("after select_storyline st.session_state: ", st.session_state)
+
     if st.session_state["page3_write_article_state"] in ["storyline_generated", "requested_storyline_generated"]:
         storylines = st.session_state.get("storylines")
         if storylines:
             # storylines_placeholder = st.empty()
+            # st.session_state["page3_write_article_state"] = "select_storyline"
             with storylines_placeholder.container():
                 display_storylines(storylines)
-        # st.session_state["page3_write_article_state"] = "select_storyline"
 
     if st.session_state["page3_write_article_state"] == "storyline_requested":
         storylines_placeholder.empty()
@@ -447,24 +491,25 @@ def create_new_article_page():
                     user_input_text, user_query=user_feedback
                 )
                 if storylines:
+                    # st.session_state["page3_write_article_state"] = "select_storyline"
                     st.session_state["storylines"] = storylines
                     st.session_state["page3_write_article_state"] = "requested_storyline_generated"
                     st.rerun()
                     # with storylines_placeholder.container():
                     #     display_storylines(storylines)
-                # st.session_state["page3_write_article_state"] = "select_storyline"
             except Exception as e:
                 st.error(f"An error occurred while generating new storylines: {e}")
                 logging.error(traceback.format_exc())
             # loading_placeholder.empty()
 
     if st.session_state.get("page3_write_article_state") == "storyline_selected":
-        st.session_state["selected_storyline_option"] = st.text_area(
-            label="Topic Option",
-            value=st.session_state["selected_storyline_option"],
-            # label_visibility="collapsed", placeholder="Enter the text here",
-            height=calculate_height(st.session_state["selected_storyline_option"]),
-        )
+        storylines_placeholder.empty()
+        # st.session_state["selected_storyline_option"] = st.text_area(
+        #     label="Topic Option",
+        #     value=st.session_state["selected_storyline_option"],
+        #     # label_visibility="collapsed", placeholder="Enter the text here",
+        #     height=calculate_height(st.session_state["selected_storyline_option"]),
+        # )
         st.session_state["selected_storyline_elaboration"] = st.text_area(
             label="Storyline Elaboration",
             value=st.session_state["selected_storyline_elaboration"],
