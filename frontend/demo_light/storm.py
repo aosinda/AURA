@@ -143,8 +143,10 @@ def main():
     with st.sidebar:
         create_article_icon = "➕"
         my_library_icon = "📄"
-        demo_util.clear_other_page_session_state(page_index=3)
-        st.session_state.update({"selected_page": "Create New Article"})
+        print("st.session_state", st.session_state)
+        if "selected_page" not in st.session_state or not st.session_state["selected_page"]:
+            demo_util.clear_other_page_session_state(page_index=3)
+            st.session_state.update({"selected_page": "Create New Article"})
 
         # Update button labels
         if st.button(

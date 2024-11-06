@@ -545,12 +545,12 @@ def display_article_page(
                 text-align: center;
                 font-size: 24px; 
                 font-weight: 700; 
-                color: #056161; 
+                color: #ffffff; 
                 padding: 10px;
                 margin-bottom: 20px;
-                background: linear-gradient(45deg, rgb(85 203 219), #ffffff); 
+                background-color: rgba(6, 144, 143);
                 border-radius: 12px;
-                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+                box-shadow: 8px 4px 15px rgba(89, 185, 185, 0.7);
             '>
                 {selected_article_name.replace('_', ' ').title()}
             </h2>
