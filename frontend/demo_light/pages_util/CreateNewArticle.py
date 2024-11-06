@@ -1,15 +1,18 @@
-import math
 import os
+import io
+import logging
+import math
 import traceback
+
+import magic
 import streamlit as st
+
 import demo_util
 from demo_util import DemoFileIOHelper, truncate_filename
 from input_processing import extract_text
 from storyline import generate_storyline
-import magic
-import io
-import logging
 
+from utils import QdrantVectorStoreManager
 
 MIME_TYPE_EXTENSIONS = {
     "application/CDFV2": "doc",
@@ -29,26 +32,28 @@ MIME_TYPE_EXTENSIONS = {
 
 
 def handle_uploaded_file(uploaded_file, file_extension):
-    # file_extension = uploaded_file.name.split('.')[-1].lower()
-    # file_path = f"/tmp/{uploaded_file.name}"
-
     try:
-        # with open(file_path, "wb") as f:
-        #     f.write(uploaded_file.getbuffer())
-
         docs = extract_text(uploaded_file, file_extension)
-        return docs
+        logging.info(f"Handling uploaded file: {uploaded_file}")
+        collection_name = "user_input_docs"
+        vector_db_mode = "online"
+
+        store = QdrantVectorStoreManager.create_or_update_vector_store_from_docs(
+            collection_name=collection_name,
+            vector_db_mode=vector_db_mode,
+            documents=docs,
+            url=os.getenv("QDRANT_URL"),
+            qdrant_api_key=os.getenv("QUADRANT_API_KEY"),
+        )
+        if store is None:
+            raise ValueError("Failed to create or update vector store; store is None.")
+
+        return docs, store
     except Exception as e:
         st.error(f"An error occurred while handling the file: {e}")
         traceback.print_exc()
-        # finally:
-        #     if os.path.exists(file_path):
-        #         os.remove(file_path)
         logging.error(traceback.format_exc())
-    # finally:
-    #     if os.path.exists(file_path):
-    #         os.remove(file_path)
-    return None
+    return None, None
 
 
 def display_storylines(storylines):
@@ -64,7 +69,7 @@ def display_storylines(storylines):
     ):
         storyline_elaboration = (
             f"**{storyline.title}**\n\n"
-            f"*{storyline.subheadline}*\n\n"  #added subheadline
+            f"*{storyline.subheadline}*\n\n"  # added subheadline
             f"{storyline.elaboration}"
         )
 
@@ -95,9 +100,9 @@ def display_storylines(storylines):
         st.write("---")
 
     st.markdown(
-    "<p style='font-size: 16px;'><strong>Want to generate new storylines? Please describe what you are looking for.</strong><br>"
-    "<em>For example: Economic perspective, social context, etc.</em></p>",
-    unsafe_allow_html=True,
+        "<p style='font-size: 16px;'><strong>Want to generate new storylines? Please describe what you are looking for.</strong><br>"
+        "<em>For example: Economic perspective, social context, etc.</em></p>",
+        unsafe_allow_html=True,
     )
     user_feedback = st.text_input(
         "Please enter the changes you are looking for:", key="user_feedback"
@@ -341,7 +346,7 @@ def create_new_article_page():
                     file_content = uploaded_file.read()
                     in_memory_file.write(file_content)
                     in_memory_file.seek(0)
-                    docs = handle_uploaded_file(in_memory_file, ext)
+                    docs, store = handle_uploaded_file(in_memory_file, ext)
                 if docs:
                     user_input_text = " ".join([doc.page_content for doc in docs])
                 else:
@@ -432,8 +437,15 @@ def create_new_article_page():
             os.makedirs(current_working_dir)
 
     if st.session_state["page3_write_article_state"] == "pre_writing":
+        vector_store_url = st.session_state.get("vector_store_url")
+        vector_store_api_key = st.session_state.get("vector_store_api_key")
+        collection_name = st.session_state.get("collection_name")
         if "runner" not in st.session_state:
-            demo_util.set_storm_runner()
+            demo_util.set_storm_runner(
+                vector_store_url=vector_store_url,
+                vector_store_api_key=vector_store_api_key,
+                collection_name=collection_name,
+            )
 
         st.session_state["page3_current_working_dir"] = current_working_dir
         status = st.status(
