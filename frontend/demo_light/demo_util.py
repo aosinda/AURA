@@ -15,7 +15,7 @@ import sys
 sys.path.append('../../')
 from knowledge_storm import STORMWikiRunnerArguments, STORMWikiRunner, STORMWikiLMConfigs
 from knowledge_storm.lm import OpenAIModel
-from knowledge_storm.rm import  BingSearch
+from knowledge_storm.rm import  BingSearch, VectorRM, CombinedRM
 from knowledge_storm.storm_wiki.modules.callback import BaseCallbackHandler
 from knowledge_storm.utils import truncate_filename
 from stoc import stoc

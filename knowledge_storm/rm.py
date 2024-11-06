@@ -4,7 +4,7 @@ from typing import Callable, Union, List
 import dspy
 import requests
 
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_qdrant import Qdrant
 from qdrant_client import QdrantClient
 
@@ -305,6 +305,27 @@ class VectorRM(dspy.Retrieve):
 
         return collected_results
 
+class CombinedRM(dspy.Retrieve):
+    """Retrieve information from both Qdrant and Bing Search."""
+
+    def __init__(self, rms: List[dspy.Retrieve], k=3):
+        super().__init__(k=k)
+        self.rms = rms
+
+    def get_usage_and_reset(self):
+        usage = {}
+        for rm in self.rms:
+            usage.update(rm.get_usage_and_reset())
+        return usage
+
+    def forward(
+        self, query_or_queries: Union[str, List[str]], exclude_urls: List[str] = []
+    ):
+        collected_results = []
+        for rm in self.rms:
+            results = rm.forward(query_or_queries, exclude_urls)
+            collected_results.extend(results)
+        return collected_results
 
 class SerperRM(dspy.Retrieve):
     """Retrieve information from custom queries using Serper.dev."""
