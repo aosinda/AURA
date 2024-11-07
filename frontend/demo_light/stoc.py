@@ -110,7 +110,7 @@ class stoc:
                 f"""<div style='
                     background: linear-gradient(to right, rgba(255, 255, 255, 0.5), #ffffff); 
                     padding: 30px;
-                    margin-top: 20px;
+                    margin-top: 5px;
                     border-radius: 15px;
                     box-shadow: 8px 4px 15px rgba(89, 185, 185, 0.7);
                     color: #333;
