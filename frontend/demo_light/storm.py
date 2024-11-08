@@ -132,7 +132,7 @@ def main():
         background-color: white; 
         text-align: center; 
         margin: 0;
-    '>
+    ' id="aura">
         AURA
     </h1>
     """,

@@ -60,7 +60,7 @@ def display_storylines(storylines, display_storylines_called):
     if st.session_state.get("page3_write_article_state", "") == "requested_storyline_generated":
         button_key = "requested"
     st.markdown(
-        f"<p style='font-size: 16px; color: #81462c;'>"
+        f"<p style='font-size: 16px; color: #134a64;'>"
         "Please chose one for AURA to initiate the research for you.<br>"
         "Not seeing what you like? Scroll down and adjust them as you wish.</p>",
         unsafe_allow_html=True,
@@ -112,8 +112,8 @@ def display_storylines(storylines, display_storylines_called):
     # )
     st.markdown(
         f"""
-            <h4 style='text-align: center; font-size: 18px; color: #06908F;'>Want to generate new storylines? Please describe what you are looking for.</h4>
-            <h5 style='text-align: center; font-size: 18px; color: #06908F;'>For example: Economic perspective, social context, etc.</h5>
+            <p style='text-align: center; font-size: 18px; color: #134a64;'>Want to generate new storylines? Please describe what you are looking for.</p>
+            <p style='text-align: center; font-size: 18px; color: #134a64;'>For example: Economic perspective, social context, etc.</p>
 
         """,
         unsafe_allow_html=True,
@@ -329,6 +329,7 @@ def create_new_article_page():
         """<h2 style='text-align: center; color: #06908F;'>Create New Research Report</h2>""",
         unsafe_allow_html=True,
     )
+    # st.write("---")
 
     uploader_placeholder = st.empty()
     file_uploaded_placeholder = st.empty()
@@ -338,7 +339,7 @@ def create_new_article_page():
 
         # if st.session_state["page3_write_article_state"] == "not_started":
         st.markdown(
-            """<p style='text-align: center; font-size: 16px; color: #81462c;'>
+            """<p style='text-align: center; font-size: 16px; color: #134a64;'>
                 Upload a file or paste your text (e.g., a press release or story draft).<br>
                 AURA will suggest three potential newsworthy angles and provide a detailed research report.
             </p>""",
@@ -398,14 +399,6 @@ def create_new_article_page():
         user_input_text = ""
         if uploaded_file:
             # with st.spinner("Processing and uploading documents..."):
-            st.markdown(
-                f"""
-                    <h4 style='text-align: center; font-size: 18px; color: #06908F;'>Your Agent is on it!!!</h4>
-                    <h4 style='text-align: center; font-size: 18px; color: #06908F;'>Give it 30 seconds & it will put together a pitch and break down the newsworthiness for you.<br></h4>
-                    
-                """,
-                unsafe_allow_html=True,
-            )
             with st.spinner("Uploading and Processing document(s)..."):
                 # loading_placeholder = st.empty()
                 # loading_placeholder.markdown(
@@ -467,11 +460,21 @@ def create_new_article_page():
                 f"""
                     <p style='text-align: center;'>
                         <span style='text-align: center; font-size: 18px; color: #06908F;'>Uploaded File: 📄</span>
-                        <span style='text-align: center; font-size: 18px; color: #81462c;'>{uploaded_file.name}</span>
+                        <span style='text-align: center; font-size: 18px; color: #134a64;'>{uploaded_file.name}</span>
                     </p>
+                    <p style='text-align: center; font-size: 18px; color: #134a64;'>Your Agent is on it!!!</p>
+                    <p style='text-align: center; font-size: 18px; color: #134a64;'>Give it 30 seconds & it will put together a pitch and break down the newsworthiness for you.<br></p>
                 """,
                 unsafe_allow_html=True,
             )
+            # st.markdown(
+            #     f"""
+            #         <p style='text-align: center; font-size: 18px; color: #06908F;'>Your Agent is on it!!!</p>
+            #         <p style='text-align: center; font-size: 18px; color: #06908F;'>Give it 30 seconds & it will put together a pitch and break down the newsworthiness for you.<br></p>
+            #
+            #     """,
+            #     unsafe_allow_html=True,
+            # )
 
         with st.spinner("Generating Storylines..."):
             # loading_placeholder = st.empty()
@@ -530,7 +533,16 @@ def create_new_article_page():
                 requested_generated_value = "Requested"
             # storylines_placeholder = st.empty()
             # st.session_state["page3_write_article_state"] = "select_storyline"
-            with file_uploaded_placeholder.container():
+            # with file_uploaded_placeholder.container():
+            #     st.markdown(
+            #         f"""
+            #             <h5>
+            #                 <span style='color: #06908F;'>Three {requested_generated_value} Storylines</span>
+            #             </h5>
+            #         """,
+            #         unsafe_allow_html=True,
+            #     )
+            with storylines_placeholder.container():
                 st.markdown(
                     f"""
                         <h5>
@@ -539,7 +551,6 @@ def create_new_article_page():
                     """,
                     unsafe_allow_html=True,
                 )
-            with storylines_placeholder.container():
                 display_storylines(storylines, st.session_state["display_storylines_called"])
 
     if st.session_state.get("page3_write_article_state") == "storyline_selected":
@@ -550,6 +561,13 @@ def create_new_article_page():
         #     # label_visibility="collapsed", placeholder="Enter the text here",
         #     height=calculate_height(st.session_state["selected_storyline_option"]),
         # )
+        st.markdown(
+            f"""
+                <p style='text-align: center; font-size: 18px; color: #134a64;'>This text is heading to your Research Agents! Need to add or cut anything?</p>
+                <p style='text-align: center; font-size: 18px; color: #134a64;'>Make your edits, hit the button, & they'll dive in to build a research report for your chosen storyline.<br></p>
+            """,
+            unsafe_allow_html=True,
+        )
         st.session_state["selected_storyline_elaboration"] = st.text_area(
             label="Storyline Elaboration",
             value=st.session_state["selected_storyline_elaboration"],
