@@ -106,6 +106,8 @@ class stoc:
         if write_text:
             st.write(text)
         else:
+            if not text.strip():
+                text = "No content available..."
             st.markdown(
                 f"""<div style='
                     background: linear-gradient(to right, rgba(255, 255, 255, 0.5), #ffffff); 
