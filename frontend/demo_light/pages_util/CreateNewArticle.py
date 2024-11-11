@@ -1,3 +1,6 @@
+from time import sleep
+
+import math
 import os
 import io
 import logging
@@ -10,6 +13,7 @@ import streamlit as st
 import demo_util
 from demo_util import DemoFileIOHelper, truncate_filename
 from input_processing import extract_text
+
 from storyline import generate_storyline
 
 from utils import QdrantVectorStoreManager
@@ -56,17 +60,24 @@ def handle_uploaded_file(uploaded_file, file_extension):
     return None, None
 
 
-def display_storylines(storylines):
+def display_storylines(storylines, display_storylines_called):
+    button_key = "generated"
+    storylines_list = [storylines.storyline_1, storylines.storyline_2, storylines.storyline_3]
+    if st.session_state.get("page3_write_article_state", "") == "requested_storyline_generated":
+        button_key = "requested"
     st.markdown(
-        "<p style='font-size: 18px; font-weight: bold; color: #06908F; margin-top: 40px;'>Here are three possible storylines. "
+        f"<p style='font-size: 16px; color: #134a64;'>"
         "Please chose one for AURA to initiate the research for you.<br>"
         "Not seeing what you like? Scroll down and adjust them as you wish.</p>",
         unsafe_allow_html=True,
     )
     st.write("---")
-    for idx, storyline in enumerate(
-        [storylines.storyline_1, storylines.storyline_2, storylines.storyline_3], 1
-    ):
+    if button_key == "requested" and not display_storylines_called:
+        st.session_state["requested_select_storyline_button_counter"] += len(storylines_list)
+        st.session_state["display_storylines_called"] = True
+    requested_select_storyline_button_counter = st.session_state.get("requested_select_storyline_button_counter", 0)
+    for idx, storyline in enumerate(storylines_list, max(1, requested_select_storyline_button_counter)):
+        # button_id = idx
         storyline_elaboration = (
             f"**{storyline.title}**\n\n"
             f"*{storyline.subheadline}*\n\n"  # added subheadline
@@ -89,28 +100,81 @@ def display_storylines(storylines):
         st.markdown(storyline_option, unsafe_allow_html=True)
 
         if st.button(
-            f"Select the storyline: {storyline.title}", key=f"select_storyline_{idx}"
+            f"Select the storyline: {storyline.title}", key=f"select_{button_key}_storyline_{idx}"
         ):
+            st.session_state["page3_write_article_state"] = "storyline_selected"
             st.session_state["selected_storyline_title"] = storyline.title
             st.session_state["selected_storyline_subheadline"] = storyline.subheadline
             st.session_state["selected_storyline_elaboration"] = storyline_elaboration
             st.session_state["selected_storyline_option"] = storyline_option
-            st.session_state["page3_write_article_state"] = "storyline_selected"
-            st.rerun()
+            # st.rerun()
         st.write("---")
 
+    # if st.session_state.get("page3_write_article_state", "") != "requested_storyline_generated":
+    # st.markdown(
+    # "<p style='font-size: 16px;'><strong>Want to generate new storylines? Please describe what you are looking for.</strong><br>"
+    # "<em>For example: Economic perspective, social context, etc.</em></p>",
+    # unsafe_allow_html=True,
+    # )
     st.markdown(
-        "<p style='font-size: 16px;'><strong>Want to generate new storylines? Please describe what you are looking for.</strong><br>"
-        "<em>For example: Economic perspective, social context, etc.</em></p>",
+        f"""
+            <p style='text-align: center; font-size: 18px; color: #134a64;'>Want to generate new storylines? Please describe what you are looking for.</p>
+            <p style='text-align: center; font-size: 18px; color: #134a64;'>For example: Economic perspective, social context, etc.</p>
+
+        """,
         unsafe_allow_html=True,
     )
-    user_feedback = st.text_input(
-        "Please enter the changes you are looking for:", key="user_feedback"
+    # user_feedback = st.text_input(
+    #     "Please enter the changes you are looking for:", key="user_feedback"
+    # )
+    # user_feedback = st.text_area(
+    #     label="Please enter the changes you are looking for",
+    #     value=st.session_state["selected_storyline_option"],
+    #     # label_visibility="collapsed", placeholder="Enter the text here",
+    #     height=calculate_height(st.session_state["selected_storyline_option"]),
+    # )
+
+    storyline_requested_placeholder = st.empty()
+
+    def action_user_feedback():
+        storyline_requested_placeholder.empty()
+
+    user_feedback = st.text_area(
+        key="user_feedback_{}".format(st.session_state.get("requested_select_storyline_button_counter", 0)),
+        label="Enter the changes you are looking for",
+        label_visibility="collapsed",
+        placeholder="Enter the changes you are looking for",
+        height=100,
+        on_change=action_user_feedback
     )
 
-    if st.button("Generate New Storylines", key="generate_new_storylines"):
+    # if "user_feedback" in st.session_state:
+    if user_feedback.strip():
         st.session_state["page3_write_article_state"] = "storyline_requested"
-        st.rerun()
+        # if st.session_state.get("file_or_text_uploaded"):
+        #     st.session_state["file_or_text_uploaded"] = False
+    elif user_feedback:
+        with storyline_requested_placeholder.container():
+            st.markdown(
+                "<p style='color:red;'>Please enter any text to proceed with requested storyline</p>",
+                unsafe_allow_html=True
+            )
+
+    if st.button(
+            "Generate Requested Storylines",
+            key="generate_requested_storylines_{}".format(st.session_state.get("requested_select_storyline_button_counter", 0))
+    ):
+        if user_feedback.strip():
+            st.session_state["page3_write_article_state"] = "storyline_requested"
+        else:
+            with storyline_requested_placeholder.container():
+                st.markdown(
+                    "<p style='color:red;'>Please enter any text to proceed with requested storyline</p>",
+                    unsafe_allow_html=True
+                )
+        # if st.session_state.get("file_or_text_uploaded"):
+        #     st.session_state["file_or_text_uploaded"] = False
+        # st.rerun()
 
 
 def calculate_height(text):
@@ -145,7 +209,7 @@ def create_new_article_page():
         [data-testid='stFileUploader'] section > button {
             width: 60%;
             padding: 15px;
-            background-color: #F56329;
+            background-color: #5A8487;
             color: white !important; /* Force white text */
             font-size: x-large;
             border-radius: 50px; /* Rounded corners */
@@ -187,7 +251,7 @@ def create_new_article_page():
         [data-testid='stUploadedFile'] {
             background-color: #b9f7f7;
             padding: 1px;
-            color: #F56329;
+            color: #5A8487;
         }
         [data-testid='stTextInput'] {
             width: 100%; /* Make the file uploader wider */
@@ -255,17 +319,33 @@ def create_new_article_page():
     st.markdown(css, unsafe_allow_html=True)
     demo_util.clear_other_page_session_state(page_index=3)
 
+    uploaded_file = None
     if "page3_write_article_state" not in st.session_state:
         st.session_state["page3_write_article_state"] = "not_started"
+        st.session_state["file_or_text_uploaded"] = False
+        st.session_state["requested_select_storyline_button_counter"] = 0
+        st.session_state["display_storylines_called"] = False
+    # elif st.session_state["page3_write_article_state"] == "not_started":
+    #     st.session_state["file_or_text_uploaded"] = False
+
+    if st.session_state.get("unique_key_for_file_uploader") or st.session_state.get("uploaded_file_page"):
+        st.session_state["file_or_text_uploaded"] = True
 
     st.markdown(
-        """<h2 style='text-align: center; color: #06908F;'>Create a New Research Report</h2>""",
+        """<h2 style='text-align: center; color: #06908F;'>Create New Research Report</h2>""",
         unsafe_allow_html=True,
     )
+    # st.write("---")
 
-    if st.session_state["page3_write_article_state"] == "not_started":
+    uploader_placeholder = st.empty()
+    file_uploaded_placeholder = st.empty()
+    storylines_placeholder = st.empty()
+
+    with uploader_placeholder.container():
+
+        # if st.session_state["page3_write_article_state"] == "not_started":
         st.markdown(
-            """<p style='text-align: center; font-size: 16px; color: #F56329;'>
+            """<p style='text-align: center; font-size: 16px; color: #134a64;'>
                 Upload a file or paste your text (e.g., a press release or story draft).<br>
                 AURA will suggest three potential newsworthy angles and provide a detailed research report.
             </p>""",
@@ -273,44 +353,64 @@ def create_new_article_page():
         )
         _, search_form_column, _ = st.columns([2, 5, 2])
         with search_form_column:
-            st.markdown("<div class='centered'>", unsafe_allow_html=True)
-            uploaded_file = st.file_uploader(
-                "Upload File",
-                type=["csv", "pdf", "doc", "docx", "txt", "rtf", "html"],
-                key="unique_key_for_file_uploader",
-                label_visibility="collapsed",
-            )
-            st.session_state["page3_topic"] = st.text_area(
-                label="page3_topic",
-                label_visibility="collapsed",
-                placeholder="or Enter your text here...",
-                height=100,
-            )
-            st.markdown("</div>", unsafe_allow_html=True)
+            # uploader_placeholder = st.empty()
+            if not st.session_state["file_or_text_uploaded"]:
+                # with uploader_placeholder.container():
+                st.markdown("<div class='centered'>", unsafe_allow_html=True)
+                uploaded_file = st.file_uploader(
+                    "Upload File",
+                    type=["csv", "pdf", "doc", "docx", "txt", "rtf", "html"],
+                    key="unique_key_for_file_uploader",
+                    label_visibility="collapsed",
+                )
 
-            if uploaded_file or st.session_state["page3_topic"].strip():
-                st.session_state["uploaded_file"] = uploaded_file
-                st.session_state["page3_write_article_state"] = "initiated"
+                if uploaded_file is not None:
+                    st.session_state["uploaded_file_page"] = uploaded_file
+                    if st.session_state.get("unique_key_for_file_uploader"):
+                        del st.session_state["unique_key_for_file_uploader"]
+                    st.session_state["file_or_text_uploaded"] = True
+
+                st.session_state["page3_topic"] = st.text_area(
+                    label="page3_topic",
+                    label_visibility="collapsed",
+                    placeholder="or Enter your text here...",
+                    height=100,
+                )
+                st.markdown("</div>", unsafe_allow_html=True)
+
+    if st.session_state.get("file_or_text_uploaded"):
+        uploader_placeholder.empty()
+
+    if st.session_state["page3_write_article_state"] == "not_started" and st.session_state.get("file_or_text_uploaded"):
+        # if st.session_state.get("file_or_text_uploaded"):
+        uploader_placeholder.empty()
+        if st.session_state.get("uploaded_file_page"):
+            st.session_state["uploaded_file_page"] = st.session_state.get("uploaded_file_page")
+            if st.session_state.get("unique_key_for_file_uploader"):
+                del st.session_state["unique_key_for_file_uploader"]
+        elif st.session_state.get("unique_key_for_file_uploader"):
+            st.session_state["uploaded_file_page"] = st.session_state.get("unique_key_for_file_uploader")
+            if st.session_state.get("unique_key_for_file_uploader"):
+                del st.session_state["unique_key_for_file_uploader"]
+        st.session_state["page3_write_article_state"] = "initiated"
+        # st.rerun()
 
     if st.session_state["page3_write_article_state"] == "initiated":
         uploaded_file = st.session_state.get(
-            "uploaded_file"
+            "uploaded_file_page"
         )  # Retrieve the file from session state
-        # print(
-        #     "create new article",
-        #     type(uploaded_file), isinstance(uploaded_file, io.BytesIO),
-        #     isinstance(uploaded_file, st.runtime.uploaded_file_manager.UploadedFile)
-        # )
+        if st.session_state.get("uploaded_file_page"):
+            del st.session_state["uploaded_file_page"]
 
         user_input_text = ""
         if uploaded_file:
             # with st.spinner("Processing and uploading documents..."):
-            with st.spinner(""):
-                loading_placeholder = st.empty()
-                loading_placeholder.markdown(
-                    '<div class="custom-spinner-text">Processing and uploading documents...</div>',
-                    unsafe_allow_html=True,
-                )
+            with st.spinner("Uploading and Processing document(s)..."):
+                # loading_placeholder = st.empty()
+                # loading_placeholder.markdown(
+                #     '<div class="custom-spinner-text">Uploading and Processing document(s)...</div>',
+                #     unsafe_allow_html=True,
+                # )
                 if isinstance(uploaded_file, io.BytesIO):
                     mimeType = mime.from_buffer(uploaded_file.getvalue())
                     ext = (
@@ -352,7 +452,7 @@ def create_new_article_page():
                 else:
                     # st.write("No text could be extracted from the document.")
                     user_input_text = st.session_state["page3_topic"]
-            loading_placeholder.empty()
+            # loading_placeholder.empty()
         else:
             user_input_text = st.session_state["page3_topic"]
 
@@ -361,55 +461,118 @@ def create_new_article_page():
 
         st.session_state["user_input_text"] = user_input_text
 
-        with st.spinner(""):
-            loading_placeholder = st.empty()
-            loading_placeholder.markdown(
-                '<div class="custom-spinner-text">Generating Storylines...</div>',
+        with file_uploaded_placeholder.container():
+            st.markdown(
+                f"""
+                    <p style='text-align: center;'>
+                        <span style='text-align: center; font-size: 18px; color: #06908F;'>Uploaded File: 📄</span>
+                        <span style='text-align: center; font-size: 18px; color: #134a64;'>{uploaded_file.name}</span>
+                    </p>
+                    <p style='text-align: center; font-size: 18px; color: #134a64;'>Your Agent is on it!!!</p>
+                    <p style='text-align: center; font-size: 18px; color: #134a64;'>Give it 30 seconds & it will put together a pitch and break down the newsworthiness for you.<br></p>
+                """,
                 unsafe_allow_html=True,
             )
+            # st.markdown(
+            #     f"""
+            #         <p style='text-align: center; font-size: 18px; color: #06908F;'>Your Agent is on it!!!</p>
+            #         <p style='text-align: center; font-size: 18px; color: #06908F;'>Give it 30 seconds & it will put together a pitch and break down the newsworthiness for you.<br></p>
+            #
+            #     """,
+            #     unsafe_allow_html=True,
+            # )
+
+        with st.spinner("Generating Storylines..."):
+            # loading_placeholder = st.empty()
+            # loading_placeholder.markdown(
+            #     '<div class="custom-spinner-text">Generating Storylines...</div>',
+            #     unsafe_allow_html=True,
+            # )
             try:
                 storylines = generate_storyline(user_input_text)
                 st.session_state["storylines"] = storylines
                 st.session_state["page3_write_article_state"] = "storyline_generated"
+                st.session_state["display_storylines_called"] = False
             except Exception as e:
                 st.error(f"An error occurred while generating storylines: {e}")
                 logging.error(traceback.format_exc())
-            loading_placeholder.empty()
+            # loading_placeholder.empty()
 
-    if st.session_state["page3_write_article_state"] == "storyline_generated":
-        storylines = st.session_state.get("storylines")
-        if storylines:
-            display_storylines(storylines)
+        file_uploaded_placeholder.empty()
 
     if st.session_state["page3_write_article_state"] == "storyline_requested":
-        user_feedback = st.session_state.get("user_feedback", "")
+        storylines_placeholder.empty()
+        user_feedback = st.session_state.get(
+            "user_feedback_{}".format(st.session_state.get("requested_select_storyline_button_counter", 0)), ""
+        )
         user_input_text = st.session_state.get("user_input_text", "")
         if not user_input_text:
             user_input_text = st.session_state.get("page3_topic", "")
-        with st.spinner("Generating New Storylines..."):
-            loading_placeholder = st.empty()
-            loading_placeholder.markdown(
-                '<div class="custom-spinner-text">Generating New Storylines...</div>',
-                unsafe_allow_html=True,
-            )
+        with st.spinner("Generating Requested Storylines..."):
+            # loading_placeholder = st.empty()
+            # loading_placeholder.markdown(
+            #     '<div class="custom-spinner-text">Generating New Storylines...</div>',
+            #     unsafe_allow_html=True,
+            # )
             try:
                 storylines = generate_storyline(
                     user_input_text, user_query=user_feedback
                 )
-                st.session_state["storylines"] = storylines
-                st.session_state["page3_write_article_state"] = "storyline_generated"
-                st.experimental_rerun()
+                if storylines:
+                    # st.session_state["page3_write_article_state"] = "select_storyline"
+                    st.session_state["storylines"] = storylines
+                    st.session_state["page3_write_article_state"] = "requested_storyline_generated"
+                    st.session_state["display_storylines_called"] = False
+                    st.rerun()
+                    # with storylines_placeholder.container():
+                    #     display_storylines(storylines)
             except Exception as e:
                 st.error(f"An error occurred while generating new storylines: {e}")
                 logging.error(traceback.format_exc())
-            loading_placeholder.empty()
+            # loading_placeholder.empty()
+
+    if st.session_state["page3_write_article_state"] in ["storyline_generated", "requested_storyline_generated"]:
+        storylines = st.session_state.get("storylines")
+        if storylines:
+            requested_generated_value = "Generated"
+            if st.session_state.get("page3_write_article_state", "") == "requested_storyline_generated":
+                requested_generated_value = "Requested"
+            # storylines_placeholder = st.empty()
+            # st.session_state["page3_write_article_state"] = "select_storyline"
+            # with file_uploaded_placeholder.container():
+            #     st.markdown(
+            #         f"""
+            #             <h5>
+            #                 <span style='color: #06908F;'>Three {requested_generated_value} Storylines</span>
+            #             </h5>
+            #         """,
+            #         unsafe_allow_html=True,
+            #     )
+            with storylines_placeholder.container():
+                st.markdown(
+                    f"""
+                        <h5>
+                            <span style='color: #06908F;'>Three {requested_generated_value} Storylines</span>
+                        </h5>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                display_storylines(storylines, st.session_state["display_storylines_called"])
 
     if st.session_state.get("page3_write_article_state") == "storyline_selected":
-        st.session_state["selected_storyline_option"] = st.text_area(
-            label="Topic Option",
-            value=st.session_state["selected_storyline_option"],
-            # label_visibility="collapsed", placeholder="Enter the text here",
-            height=calculate_height(st.session_state["selected_storyline_option"]),
+        storylines_placeholder.empty()
+        # st.session_state["selected_storyline_option"] = st.text_area(
+        #     label="Topic Option",
+        #     value=st.session_state["selected_storyline_option"],
+        #     # label_visibility="collapsed", placeholder="Enter the text here",
+        #     height=calculate_height(st.session_state["selected_storyline_option"]),
+        # )
+        st.markdown(
+            f"""
+                <p style='text-align: center; font-size: 18px; color: #134a64;'>This text is heading to your Research Agents! Need to add or cut anything?</p>
+                <p style='text-align: center; font-size: 18px; color: #134a64;'>Make your edits, hit the button, & they'll dive in to build a research report for your chosen storyline.<br></p>
+            """,
+            unsafe_allow_html=True,
         )
         st.session_state["selected_storyline_elaboration"] = st.text_area(
             label="Storyline Elaboration",
@@ -427,8 +590,16 @@ def create_new_article_page():
         and st.session_state.get("page3_write_article_state") == "pre_writing"
     ):
         current_working_dir = os.path.join(demo_util.get_demo_dir(), "DEMO_WORKING_DIR")
+        st.markdown(
+            f"""
+                        <h5>
+                            <span style='color: #06908F;'>Selected storyline</span>
+                        </h5>
+                    """,
+            unsafe_allow_html=True,
+        )
         st.write(
-            f"Selected storyline:\n\n {st.session_state['selected_storyline_option']}"
+            f"\n\n {st.session_state['selected_storyline_option']}"
         )
         st.write(
             f"Topic for research: {st.session_state['selected_storyline_elaboration']}"

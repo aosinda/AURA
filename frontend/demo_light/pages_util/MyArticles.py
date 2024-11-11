@@ -27,11 +27,16 @@ def my_articles_page():
 
     # Center the main content container
     with st.container():
-        st.markdown("<div class='centered-container'>", unsafe_allow_html=True)
+        # st.markdown("<div class='centered-container'>", unsafe_allow_html=True)
 
         # Display article previews if no article is selected
         if "page2_selected_my_article" not in st.session_state:
-            st.markdown("### My Articles")  # Header for the list of articles
+            # st.markdown("### My Articles")  # Header for the list of articles
+            st.markdown(
+                """<h2 style='text-align: center; color: #06908F;'>My Research Reports</h2>""",
+                unsafe_allow_html=True,
+            )
+            st.write("---")
 
             if len(st.session_state["page2_user_articles_file_path_dict"]) > 0:
                 article_names = sorted(list(st.session_state["page2_user_articles_file_path_dict"].keys()))
@@ -40,6 +45,8 @@ def my_articles_page():
                 for article_name in article_names:
                     # Clean up the article name for display
                     cleaned_article_title = article_name.replace("_", " ").title()
+                    # print("cleaned_article_title", cleaned_article_title)
+                    cleaned_article_title = cleaned_article_title.split("\n")[0]
 
                     # Get the path to the article folder
                     article_folder_path = os.path.join(demo_util.get_demo_dir(), "DEMO_WORKING_DIR", article_name)
@@ -84,10 +91,13 @@ def my_articles_page():
         else:
             selected_article_name = st.session_state["page2_selected_my_article"]
             selected_article_file_path_dict = st.session_state["page2_user_articles_file_path_dict"][selected_article_name]
+            selected_article_name = selected_article_name.split("\n")[0]
 
             # Display the full content of the selected article
-            demo_util.display_article_page(selected_article_name=selected_article_name,
-                                           selected_article_file_path_dict=selected_article_file_path_dict,
-                                           show_title=True, show_main_article=True)
+            demo_util.display_article_page(
+                selected_article_name=selected_article_name,
+                selected_article_file_path_dict=selected_article_file_path_dict,
+                show_title=True, show_main_article=True
+            )
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        # st.markdown("</div>", unsafe_allow_html=True)

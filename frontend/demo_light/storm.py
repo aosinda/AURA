@@ -132,7 +132,7 @@ def main():
         background-color: white; 
         text-align: center; 
         margin: 0;
-    '>
+    ' id="aura">
         AURA
     </h1>
     """,
@@ -143,21 +143,26 @@ def main():
     with st.sidebar:
         create_article_icon = "➕"
         my_library_icon = "📄"
+        if "selected_page" not in st.session_state or not st.session_state["selected_page"]:
+            demo_util.clear_other_page_session_state(page_index=3)
+            st.session_state.update({"selected_page": "Create New Article"})
 
         # Update button labels
         if st.button(
-            f"{create_article_icon} Create New Research Report",
+            f"Create New Research Report",
             key="create_article_button",
             use_container_width=True,
         ):
             st.session_state.update({"selected_page": "Create New Article"})
 
         if st.button(
-            f"{my_library_icon} My Library",
+            f"My Library",
             key="my_articles_button",
             use_container_width=True,
         ):
             st.session_state.update({"selected_page": "My Articles"})
+            if st.session_state.get("page3_write_article_state"):
+                del st.session_state["page3_write_article_state"]
 
     # Main content display based on the selected page
     if st.session_state.get("selected_page") == "My Articles":

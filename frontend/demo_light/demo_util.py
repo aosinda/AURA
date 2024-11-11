@@ -538,19 +538,18 @@ def display_article_page(
 ):
     # Use the title from the storyline stored in session state if available
     article_title = st.session_state.get("selected_storyline_title", selected_article_name)
+    # print("selected_article_name: ", selected_article_name, article_title)
     
     if show_title:
         st.markdown(
             f"""<h2 style='
                 text-align: center;
                 font-size: 24px; 
-                font-weight: 700; 
-                color: #056161; 
+                font-weight: 700;
                 padding: 10px;
-                margin-bottom: 20px;
-                background: linear-gradient(45deg, rgb(85 203 219), #ffffff); 
+                margin-bottom: 5px;
                 border-radius: 12px;
-                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+                box-shadow: 8px 4px 15px rgba(89, 185, 185, 0.7);
             '>
                 {selected_article_name.replace('_', ' ').title()}
             </h2>
