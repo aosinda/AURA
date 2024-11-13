@@ -425,7 +425,7 @@ def generate_pdf(title, markdown_text):
     return pdf_buffer
 
 
-def _display_main_article_text(article_text, citation_dict, table_content_sidebar):
+def _display_main_article_text(article_name, article_text, citation_dict, table_content_sidebar):
     # Post-process the generated article for better display.
     if "Write the lead section:" in article_text:
         article_text = article_text[
@@ -435,7 +435,23 @@ def _display_main_article_text(article_text, citation_dict, table_content_sideba
     article_text = DemoTextProcessingHelper.add_inline_citation_link(article_text, citation_dict)
     # '$' needs to be changed to '\$' to avoid being interpreted as LaTeX in st.markdown()
     article_text = article_text.replace("$", "\\$")
+    article_text = re.sub(r'(?:---)+', '', article_text)
     stoc.from_markdown(article_text, table_content_sidebar, False)
+    st.markdown(
+        """
+        <div style="display: flex; justify-content: center; padding-bottom: 20px;">
+            <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
+                <button style="padding: 10px 20px; font-size: 16px; color: white; background-color: #06908F; border: none; border-radius: 5px; cursor: pointer;">
+                    Download PDF
+                </button>
+            </a>
+        </div>
+        """.format(
+            pdf_data=base64.b64encode(generate_pdf(article_name, article_text).read()).decode("utf-8"),
+            generated_file=re.sub(r'\W+', '_', article_name)
+        ),
+        unsafe_allow_html=True
+    )
 
 
 def _display_references(citation_dict):
@@ -482,24 +498,10 @@ def _display_main_article(selected_article_file_path_dict, selected_article_name
     with st.container():
         table_content_sidebar = st.sidebar.expander("**Table of contents**", expanded=True)
         _display_main_article_text(
+            article_name=selected_article_name,
             article_text=article_data.get("article", ""),
             citation_dict=article_data.get("citations", {}),
             table_content_sidebar=table_content_sidebar
-        )
-        st.markdown(
-            """
-            <div style="display: flex; justify-content: center; padding-bottom: 20px;">
-                <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
-                    <button style="padding: 10px 20px; font-size: 16px; color: white; background-color: #06908F; border: none; border-radius: 5px; cursor: pointer;">
-                        Download PDF
-                    </button>
-                </a>
-            </div>
-            """.format(
-                pdf_data=base64.b64encode(generate_pdf(selected_article_name, article_text).read()).decode("utf-8"),
-                generated_file=re.sub(r'\W+', '_', selected_article_name)
-            ),
-            unsafe_allow_html=True
         )
 
     # display reference panel

@@ -74,6 +74,7 @@ def my_articles_page():
                     # print("------------------------------------------------------------------------------\n\n")
                     # Generate a preview of the first 100 characters
                     preview_text = article_content[:300] + "..." if article_content != "No preview available..." else article_content
+                    preview_text = re.sub(r'^\s*#+\s*', '', preview_text)
 
                     # Display the article as a clickable header
                     if st.button(cleaned_article_title):
