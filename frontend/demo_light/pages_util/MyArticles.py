@@ -1,7 +1,9 @@
+import re
 import os
 import demo_util
 import streamlit as st
-from demo_util import DemoFileIOHelper
+from demo_util import DemoFileIOHelper, generate_pdf
+import base64
 
 
 def my_articles_page():
@@ -37,12 +39,11 @@ def my_articles_page():
                 unsafe_allow_html=True,
             )
             st.write("---")
-
             if len(st.session_state["page2_user_articles_file_path_dict"]) > 0:
                 article_names = sorted(list(st.session_state["page2_user_articles_file_path_dict"].keys()))
 
                 # Loop through each article (i.e., folder)
-                for article_name in article_names:
+                for article_id, article_name in enumerate(article_names):
                     # Clean up the article name for display
                     cleaned_article_title = article_name.replace("_", " ").title()
                     # print("cleaned_article_title", cleaned_article_title)
@@ -68,7 +69,9 @@ def my_articles_page():
                     # Remove the `# summary` line if present
                     article_content_lines = article_content.splitlines()
                     article_content = "\n".join([line for line in article_content_lines if line.strip() != "# summary"])
-
+                    # print("------------------------------------------------------------------------------\n\n")
+                    # print(article_content)
+                    # print("------------------------------------------------------------------------------\n\n")
                     # Generate a preview of the first 100 characters
                     preview_text = article_content[:300] + "..." if article_content != "No preview available..." else article_content
 
@@ -80,6 +83,30 @@ def my_articles_page():
 
                     # Show a short preview of the article content as regular text
                     st.write(preview_text)
+
+                    # st.download_button(
+                    #         label="Download PDF",
+                    #         key=f"page2_download_pdf_{article_id}",
+                    #         data=generate_pdf(article_name, article_content),
+                    #         file_name=re.sub(r'\W+', '_', article_name),
+                    #         mime="application/pdf"
+                    # )
+
+                    st.markdown(
+                        """
+                        <div style="display: flex; justify-content: center;">
+                            <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
+                                <button style="padding: 10px 20px; font-size: 16px; color: white; background-color: #06908F; border: none; border-radius: 5px; cursor: pointer;">
+                                    Download PDF
+                                </button>
+                            </a>
+                        </div>
+                        """.format(
+                            pdf_data=base64.b64encode(generate_pdf(article_name, article_content).read()).decode("utf-8"),
+                            generated_file=re.sub(r'\W+', '_', article_name)
+                        ),
+                        unsafe_allow_html=True
+                    )
 
                     # Add a horizontal line separator between articles
                     st.write("---")

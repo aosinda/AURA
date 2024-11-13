@@ -8,6 +8,9 @@ from typing import Optional
 import markdown
 import pytz
 import streamlit as st
+from markdown_pdf import MarkdownPdf, Section
+from io import BytesIO
+import re
 
 # If you install the source code instead of the `knowledge-storm` package,
 # Uncomment the following lines:
@@ -412,6 +415,16 @@ def _construct_citation_dict_from_search_result(search_results):
     return citation_dict
 
 
+def generate_pdf(title, markdown_text):
+    pdf_buffer = BytesIO()
+    pdf = MarkdownPdf()
+    pdf.meta["title"] = title.replace('_', ' ').title()
+    pdf.add_section(Section(markdown_text, toc=False))
+    pdf.save(pdf_buffer)
+    pdf_buffer.seek(0)
+    return pdf_buffer
+
+
 def _display_main_article_text(article_text, citation_dict, table_content_sidebar):
     # Post-process the generated article for better display.
     if "Write the lead section:" in article_text:
@@ -464,12 +477,30 @@ def _display_persona_conversations(conversation_log):
 
 def _display_main_article(selected_article_file_path_dict, show_reference=True, show_conversation=True):
     article_data = DemoFileIOHelper.assemble_article_data(selected_article_file_path_dict)
+    article_text = article_data.get("article", "")
 
     with st.container():
         table_content_sidebar = st.sidebar.expander("**Table of contents**", expanded=True)
-        _display_main_article_text(article_text=article_data.get("article", ""),
-                                   citation_dict=article_data.get("citations", {}),
-                                   table_content_sidebar=table_content_sidebar)
+        _display_main_article_text(
+            article_text=article_data.get("article", ""),
+            citation_dict=article_data.get("citations", {}),
+            table_content_sidebar=table_content_sidebar
+        )
+        st.markdown(
+            """
+            <div style="display: flex; justify-content: center; padding-bottom: 20px;">
+                <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
+                    <button style="padding: 10px 20px; font-size: 16px; color: white; background-color: #06908F; border: none; border-radius: 5px; cursor: pointer;">
+                        Download PDF
+                    </button>
+                </a>
+            </div>
+            """.format(
+                pdf_data=base64.b64encode(generate_pdf(selected_article_name, article_text).read()).decode("utf-8"),
+                generated_file=re.sub(r'\W+', '_', selected_article_name)
+            ),
+            unsafe_allow_html=True
+        )
 
     # display reference panel
     if show_reference and "citations" in article_data:
