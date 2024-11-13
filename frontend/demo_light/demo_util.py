@@ -475,7 +475,7 @@ def _display_persona_conversations(conversation_log):
                         st.markdown(message["content"])
 
 
-def _display_main_article(selected_article_file_path_dict, show_reference=True, show_conversation=True):
+def _display_main_article(selected_article_file_path_dict, selected_article_name, show_reference=True, show_conversation=True):
     article_data = DemoFileIOHelper.assemble_article_data(selected_article_file_path_dict)
     article_text = article_data.get("article", "")
 
@@ -589,7 +589,7 @@ def display_article_page(
         )
 
     if show_main_article:
-        _display_main_article(selected_article_file_path_dict)
+        _display_main_article(selected_article_file_path_dict, selected_article_name)
 
 
 class StreamlitCallbackHandler(BaseCallbackHandler):
