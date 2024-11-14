@@ -417,9 +417,15 @@ def _construct_citation_dict_from_search_result(search_results):
 
 def generate_pdf(title, markdown_text):
     pdf_buffer = BytesIO()
-    pdf = MarkdownPdf()
-    pdf.meta["title"] = title.replace('_', ' ').title()
-    pdf.add_section(Section(markdown_text, toc=False))
+    pdf = MarkdownPdf(toc_level=2)
+    title = title.replace('_', ' ').title()
+    pdf.meta["title"] = title
+    combined_content = f"# {title}\n\n{markdown_text}"
+    # pdf.add_section(Section(markdown_text, toc=False))
+    pdf.add_section(
+        Section(combined_content, toc=True),
+        user_css="h1 {text-align:center;} p { line-height: 1.6; text-align: justify;}"
+    )
     pdf.save(pdf_buffer)
     pdf_buffer.seek(0)
     return pdf_buffer
