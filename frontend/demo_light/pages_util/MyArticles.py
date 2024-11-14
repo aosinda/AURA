@@ -65,6 +65,7 @@ def my_articles_page():
                             article_content = file.read()
                     else:
                         article_content = "No preview available..."
+                        continue
 
                     # Remove the `# summary` line if present
                     article_content_lines = article_content.splitlines()

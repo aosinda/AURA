@@ -590,7 +590,7 @@ def display_article_page(
                 border-radius: 12px;
                 box-shadow: 8px 4px 15px rgba(89, 185, 185, 0.7);
             '>
-                {selected_article_name.replace('_', ' ').title()}
+                {selected_article_name.replace('_', ' ').replace('*', '').title()}
             </h2>
             """,
             unsafe_allow_html=True
