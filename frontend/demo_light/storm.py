@@ -9,6 +9,7 @@ wiki_root_dir = os.path.dirname(os.path.dirname(script_dir))
 
 
 favicon_path = os.path.join(wiki_root_dir, "assets", "icon.png")
+# favicon_path = os.path.join(wiki_root_dir, "assets", "aura.jpeg")
 
 # Set page configuration at the top level
 st.set_page_config(layout="wide", page_title="AURA", page_icon=favicon_path)
@@ -90,6 +91,10 @@ def main():
         outline: none !important; /* Remove focus outline */
     }
     
+    .stButton>button div p {
+        font-size: 18px;
+    }
+    
     /* Hover effect */
     .stButton>button:hover {
         background-color: #08AFAF !important; /* Force darker blue on hover */
@@ -125,19 +130,30 @@ def main():
     st.markdown(
         """
     <h1 style='
-        font-size: 48px; 
-        font-weight: bold; 
-        color: #056161; 
-        padding: 10px 0; 
-        background-color: white; 
-        text-align: center; 
+        font-size: 48px;
+        font-weight: bold;
+        color: #056161;
+        padding: 10px 0;
+        background-color: white;
+        text-align: center;
         margin: 0;
+        font-family: "Comic Sans MS (cursive)";
     ' id="aura">
         AURA
     </h1>
     """,
         unsafe_allow_html=True,
     )
+    # image_path = "aura.png"
+    # st.markdown(
+    #     f"""
+    #     <div style="text-align: center;">
+    #         <img src="data:image/png;base64,{demo_util.get_base64_image(image_path)}"
+    #              style="width:200px; height:100px;">
+    #     </div>
+    #     """,
+    #     unsafe_allow_html=True
+    # )
 
     # Sidebar layout
     with st.sidebar:

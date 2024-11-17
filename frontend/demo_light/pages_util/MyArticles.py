@@ -51,6 +51,7 @@ def my_articles_page():
 
                     # Get the path to the article folder
                     article_folder_path = os.path.join(demo_util.get_demo_dir(), "DEMO_WORKING_DIR", article_name)
+                    article_folder_path_dict = st.session_state["page2_user_articles_file_path_dict"][article_name]
 
                     # Define the potential paths for the polished and raw article text files
                     polished_article_path = os.path.join(article_folder_path, "storm_gen_article_polished.txt")
@@ -104,7 +105,7 @@ def my_articles_page():
                             </a>
                         </div>
                         """.format(
-                            pdf_data=base64.b64encode(generate_pdf(article_name, article_content).read()).decode("utf-8"),
+                            pdf_data=generate_pdf(article_name, article_content, None, article_folder_path_dict),
                             generated_file=re.sub(r'\W+', '_', article_name)
                         ),
                         unsafe_allow_html=True

@@ -415,20 +415,31 @@ def _construct_citation_dict_from_search_result(search_results):
     return citation_dict
 
 
-def generate_pdf(title, markdown_text):
+def generate_pdf(title, markdown_text, references=None, article_folder_path=None):
     pdf_buffer = BytesIO()
     pdf = MarkdownPdf(toc_level=2)
     title = title.replace('_', ' ').title()
     pdf.meta["title"] = title
     combined_content = f"# {title}\n\n{markdown_text}"
     # pdf.add_section(Section(markdown_text, toc=False))
+    if not references and article_folder_path:
+        article_data = DemoFileIOHelper.assemble_article_data(article_folder_path)
+        references = article_data.get('citations', {})
+    if references:
+        references_section = "\n\n".join(f"[{i}] {references[i]['title']}\n\n({references[i]['url']})" for i in sorted(references))
+        combined_content += f"\n\n# References\n\n{references_section}"
     pdf.add_section(
         Section(combined_content, toc=True),
-        user_css="h1 {text-align:center;} p { line-height: 1.6; text-align: justify;}"
+        user_css="h1 {text-align:center;} p, li { line-height: 1.6; text-align: justify;}"
     )
     pdf.save(pdf_buffer)
     pdf_buffer.seek(0)
-    return pdf_buffer
+    return base64.b64encode(pdf_buffer.read()).decode("utf-8")
+
+
+def get_base64_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
 
 
 def _display_main_article_text(article_name, article_text, citation_dict, table_content_sidebar):
@@ -453,7 +464,7 @@ def _display_main_article_text(article_name, article_text, citation_dict, table_
             </a>
         </div>
         """.format(
-            pdf_data=base64.b64encode(generate_pdf(article_name, article_text).read()).decode("utf-8"),
+            pdf_data=generate_pdf(article_name, article_text, citation_dict),
             generated_file=re.sub(r'\W+', '_', article_name)
         ),
         unsafe_allow_html=True
@@ -469,7 +480,6 @@ def _display_references(citation_dict):
         st.markdown(f"<span style='font-size: 16px;'>**Title:** {citation_val['title']}</span>", unsafe_allow_html=True)
         st.markdown(f"<span style='font-size: 16px;'>**Url:** {citation_val['url']}</span>", unsafe_allow_html=True)
         snippets = '\n\n'.join(citation_val['snippets']).replace("$", "\\$")
-        # print("snippets: ", snippets)
         st.markdown(f"<span style='font-size: 16px; !important'>**Highlights:**\n\n {snippets}</span>", unsafe_allow_html=True)
     else:
         st.markdown("<span style='font-size: 16px;'>**No references available**</span>", unsafe_allow_html=True)
@@ -530,18 +540,12 @@ def get_demo_dir():
 
 
 def clear_other_page_session_state(page_index: Optional[int]):
-    # print("page_index: ", page_index)
-    # print("st.session_state: ", st.session_state)
     if page_index is None:
-        # print("if page_index: ", page_index)
         keys_to_delete = [key for key in st.session_state if key.startswith("page")]
     else:
-        # print("else page_index: ", page_index)
         keys_to_delete = [key for key in st.session_state if key.startswith("page") and f"page{page_index}" not in key]
-    # print("keys_to_delete: ", keys_to_delete)
     for key in set(keys_to_delete):
         del st.session_state[key]
-    # print("after st.session_state: ", st.session_state)
 
 
 def set_storm_runner():
@@ -577,7 +581,6 @@ def display_article_page(
 ):
     # Use the title from the storyline stored in session state if available
     article_title = st.session_state.get("selected_storyline_title", selected_article_name)
-    # print("selected_article_name: ", selected_article_name, article_title)
     
     if show_title:
         st.markdown(
