@@ -105,7 +105,7 @@ def my_articles_page():
                             </a>
                         </div>
                         """.format(
-                            pdf_data=generate_pdf(article_name, article_content, None, article_folder_path_dict),
+                            pdf_data=generate_pdf(article_name, re.sub(r'(?:---)+', '', article_content), None, article_folder_path_dict),
                             generated_file=re.sub(r'\W+', '_', article_name)
                         ),
                         unsafe_allow_html=True
