@@ -796,22 +796,6 @@ def create_new_article_page():
                 ),
                 unsafe_allow_html=True
             )
-            # st.markdown(
-            #     """
-            #     <div style="display: block; justify-content: center; width: 100%;">
-            #         <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
-            #             <button style="padding: 14px 20px; font-size: 18px; color: white; background-color: #06908F; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
-            #                 Download the storyline
-            #             </button>
-            #         </a>
-            #     </div>
-            #     """.format(
-            #         pdf_data=demo_util.generate_pdf(storyline.title,
-            #                                         "{}\n\n{}".format(storyline_elaboration, storyline_option)),
-            #         generated_file=re.sub(r'\W+', '_', storyline.title)
-            #     ),
-            #     unsafe_allow_html=True
-            # )
 
     if st.session_state["page3_write_article_state"] == "completed":
         file_uploaded_placeholder.empty()
