@@ -420,11 +420,17 @@ def generate_pdf(title, markdown_text, references=None, article_folder_path=None
     pdf = MarkdownPdf(toc_level=2)
     title = title.replace('_', ' ').title()
     pdf.meta["title"] = title
+    if article_folder_path and not(markdown_text or references):
+        article_data = DemoFileIOHelper.assemble_article_data(article_folder_path)
+        if not references:
+            references = article_data.get('citations', {})
+        if not markdown_text:
+            markdown_text = article_data.get("article", "")
+            markdown_text = re.sub(r'(?:---)+', '', markdown_text)
+            markdown_text = markdown_text.splitlines()
+            markdown_text = "\n".join([line for line in markdown_text if line.strip() != "# summary"])
     combined_content = f"# {title}\n\n{markdown_text}"
     # pdf.add_section(Section(markdown_text, toc=False))
-    if not references and article_folder_path:
-        article_data = DemoFileIOHelper.assemble_article_data(article_folder_path)
-        references = article_data.get('citations', {})
     if references:
         references_section = "\n\n".join(f"[{i}] {references[i]['title']}\n\n({references[i]['url']})" for i in sorted(references))
         combined_content += f"\n\n# References\n\n{references_section}"

@@ -762,11 +762,56 @@ def create_new_article_page():
                 """,
                 unsafe_allow_html=True
             )
-        _, show_result_col, _ = st.columns([4, 3, 4])
+
+        article_title = st.session_state.get(
+            "selected_storyline_title", "Untitled Article"
+        )
+        current_article_file_path_dict = ""
+        current_working_dir_paths = DemoFileIOHelper.read_structure_to_dict(
+            st.session_state["page3_current_working_dir"]
+        )
+        if st.session_state["page3_topic_name_truncated"] in current_working_dir_paths:
+            current_article_file_path_dict = current_working_dir_paths[
+                st.session_state["page3_topic_name_truncated"]
+            ]
+        # _, show_result_col, _ = st.columns([4, 3, 4])
+        show_result_col, download_result_col = st.columns(2)
         with show_result_col:
             if st.button("Show Final Report", key="show_final_article"):
                 st.session_state["page3_write_article_state"] = "completed"
                 st.rerun()
+        with download_result_col:
+            st.markdown(
+                """
+                <div style="display: block; justify-content: center; width: 100%;">
+                    <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
+                        <button style="padding: 14px 20px; font-size: 18px; color: white; background-color: #06908F; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                            Download Final Report
+                        </button>
+                    </a>
+                </div>
+                """.format(
+                    pdf_data=demo_util.generate_pdf(article_title, "", None, current_article_file_path_dict),
+                    generated_file=re.sub(r'\W+', '_', article_title)
+                ),
+                unsafe_allow_html=True
+            )
+            # st.markdown(
+            #     """
+            #     <div style="display: block; justify-content: center; width: 100%;">
+            #         <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
+            #             <button style="padding: 14px 20px; font-size: 18px; color: white; background-color: #06908F; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+            #                 Download the storyline
+            #             </button>
+            #         </a>
+            #     </div>
+            #     """.format(
+            #         pdf_data=demo_util.generate_pdf(storyline.title,
+            #                                         "{}\n\n{}".format(storyline_elaboration, storyline_option)),
+            #         generated_file=re.sub(r'\W+', '_', storyline.title)
+            #     ),
+            #     unsafe_allow_html=True
+            # )
 
     if st.session_state["page3_write_article_state"] == "completed":
         file_uploaded_placeholder.empty()
