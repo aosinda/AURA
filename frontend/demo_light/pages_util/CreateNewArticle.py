@@ -622,10 +622,41 @@ def create_new_article_page():
             )
 
 
-            if st.button("Proceed with this Storyline"):
-                st.session_state["page3_write_article_state"] = "pre_writing"
-                storylines_placeholder.empty()
-                st.rerun()
+            # if st.button("Submit Storyline"):
+            #     st.session_state["page3_write_article_state"] = "pre_writing"
+            #     storylines_placeholder.empty()
+            #     st.rerun()
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("Submit Storyline"):
+                    st.session_state["page3_write_article_state"] = "pre_writing"
+                    storylines_placeholder.empty()
+                    st.rerun()
+            with col2:
+                st.markdown(
+                    """
+                    <div style="display: block; justify-content: center; width: 100%;">
+                        <a href="data:application/pdf;base64,{pdf_data}" download="{generated_file}.pdf">
+                            <button style="padding: 14px 20px; font-size: 18px; color: white; background-color: #06908F; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                                Download the storyline
+                            </button>
+                        </a>
+                    </div>
+                    """.format(
+                        pdf_data=demo_util.generate_pdf(
+                            st.session_state["selected_storyline_title"],
+                            "{}\n\n{}".format(
+                                st.session_state["selected_storyline_elaboration"],
+                                st.session_state["selected_storyline_option"]
+                            )
+                        ),
+                        generated_file=re.sub(
+                            r'\W+', '_', st.session_state["selected_storyline_title"]
+                        )
+                    ),
+                    unsafe_allow_html=True
+                )
         # storylines_placeholder.empty()
 
     if (
@@ -639,11 +670,11 @@ def create_new_article_page():
         with file_uploaded_placeholder.container():
             st.markdown(
                 f"""
-                    <h2 style='text-align: center; color: #06908F;'>Proceeded with Storyline</h2>
+                    <h2 style='text-align: center; color: #06908F;'>Storyline Submitted</h2>
                 """,
                 unsafe_allow_html=True
             )
-        with uploader_placeholder.expander("Proceeded Storyline"):
+        with uploader_placeholder.expander("Submitted Storyline"):
             st.write(
                 f"\n\n {st.session_state['selected_storyline_option']}"
             )
@@ -727,13 +758,13 @@ def create_new_article_page():
         with file_uploaded_placeholder.container():
             st.markdown(
                 f"""
-                    <h2 style='text-align: center; color: #06908F;'>Final Article Created</h2>
+                    <h2 style='text-align: center; color: #06908F;'>Final Report Created</h2>
                 """,
                 unsafe_allow_html=True
             )
         _, show_result_col, _ = st.columns([4, 3, 4])
         with show_result_col:
-            if st.button("Show Final Article", key="show_final_article"):
+            if st.button("Show Final Report", key="show_final_article"):
                 st.session_state["page3_write_article_state"] = "completed"
                 st.rerun()
 
@@ -742,7 +773,7 @@ def create_new_article_page():
         with file_uploaded_placeholder.container():
             st.markdown(
                 f"""
-                    <h2 style='text-align: center; color: #06908F;'>Final Article</h2>
+                    <h2 style='text-align: center; color: #06908F;'>Final Report</h2>
                 """,
                 unsafe_allow_html=True
             )
