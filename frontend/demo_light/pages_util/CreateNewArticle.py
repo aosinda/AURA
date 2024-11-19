@@ -15,6 +15,7 @@ import magic
 import io
 import logging
 
+from utils import QdrantVectorStoreManager
 
 MIME_TYPE_EXTENSIONS = {
     "application/CDFV2": "doc",
@@ -33,7 +34,7 @@ MIME_TYPE_EXTENSIONS = {
 }
 
 
-def handle_uploaded_file(uploaded_file, file_extension):
+def handle_uploaded_file(uploaded_file, file_id, file_name, file_extension):
     # file_extension = uploaded_file.name.split('.')[-1].lower()
     # file_path = f"/tmp/{uploaded_file.name}"
 
@@ -41,8 +42,25 @@ def handle_uploaded_file(uploaded_file, file_extension):
         # with open(file_path, "wb") as f:
         #     f.write(uploaded_file.getbuffer())
 
-        docs = extract_text(uploaded_file, file_extension)
-        return docs
+        docs = extract_text(uploaded_file, file_id, file_name, file_extension)
+        logging.info(f"Handling uploaded file: {uploaded_file}")
+        collection_name = "user_uploaded_docs"
+        vector_db_mode = "online"
+
+        store = QdrantVectorStoreManager.create_or_update_vector_store(
+            collection_name=collection_name,
+            vector_db_mode=vector_db_mode,
+            documents=docs,
+            url=os.getenv("QDRANT_URL"),
+            qdrant_api_key=os.getenv("QUADRANT_API_KEY"),
+            file_path="",
+            content_column='content',
+            # embedding_model='gpt-4o'
+            # device="cpu"
+        )
+        # if store is None:
+        #     raise ValueError("Failed to create or update vector store; store is None.")
+        return docs, store
     except Exception as e:
         st.error(f"An error occurred while handling the file: {e}")
         traceback.print_exc()
@@ -53,7 +71,7 @@ def handle_uploaded_file(uploaded_file, file_extension):
     # finally:
     #     if os.path.exists(file_path):
     #         os.remove(file_path)
-    return None
+    return None, None
 
 
 def display_storylines(storylines, display_storylines_called):
@@ -472,11 +490,13 @@ def create_new_article_page():
                     )
                 docs = []
                 if ext:
+                    uploaded_filename = uploaded_file.name
+                    uploaded_file_id = uploaded_file.file_id
                     in_memory_file = io.BytesIO()
                     file_content = uploaded_file.read()
                     in_memory_file.write(file_content)
                     in_memory_file.seek(0)
-                    docs = handle_uploaded_file(in_memory_file, ext)
+                    docs, store = handle_uploaded_file(in_memory_file, uploaded_file_id, uploaded_filename, ext)
                 if docs:
                     user_input_text = " ".join([doc.page_content for doc in docs])
                 else:

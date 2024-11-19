@@ -291,7 +291,7 @@ def extract_text_from_html(html_path):
     return text
 
 
-def extract_text(file_path, extension):
+def extract_text(file_path, file_id, file_name, extension):
     '''
     Wrapper function to detect the file extension and call text/html
     extraction function accordingly
@@ -301,10 +301,23 @@ def extract_text(file_path, extension):
     '''
     # text = ''
     docs = []
+    page_no = 0
     if extension == 'pdf':
         for page in extract_data_from_pdf(file_path):
             if page.strip():
-                docs.append(Document(page_content=page, metadata={"source": "local"}))
+                docs.append(
+                    Document(
+                        page_content=page,
+                        metadata={
+                            "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                            "page": page_no,
+                            "title": re.sub(r'\W+', ' ', file_name),
+                            "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                            "description": page
+                        }
+                    )
+                )
+            page_no += 1
         # for page in extract_text_by_page(saved_file_path):
         #     if page.strip():
         #         docs.append(Document(page_content=page, metadata={"source": "local"}))
@@ -320,6 +333,14 @@ def extract_text(file_path, extension):
                 sleep(0.01)
                 retry += 1
             docs = process_pdf(saved_file_path)
+            for page_no, doc in enumerate(docs):
+                doc.metadata.update(
+                    {
+                        "title": re.sub(r'\W+', ' ', file_name),
+                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "description": doc.page_content
+                    }
+                )
             # print("process_pdf", docs)
             # sys.stdout.flush()
             if os.path.exists(saved_file_path):
@@ -330,7 +351,19 @@ def extract_text(file_path, extension):
         dom = htmlParser.fromstring(html)
         text = str(dom.text_content())
         if text.strip():
-            docs.append(Document(page_content=text, metadata={"source": "local"}))
+            # docs.append(Document(page_content=text, metadata={"source": "local"}))
+            docs.append(
+                Document(
+                    page_content=text,
+                    metadata={
+                        "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "page": page_no,
+                        "title": re.sub(r'\W+', ' ', file_name),
+                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "description": text
+                    }
+                )
+            )
         # print("extract_html_from_docx", docs)
         # sys.stdout.flush()
     elif extension == 'doc':
@@ -339,25 +372,73 @@ def extract_text(file_path, extension):
         dom = htmlParser.fromstring(html)
         text = str(dom.text_content())
         if text.strip():
-            docs.append(Document(page_content=text, metadata={"source": "local"}))
+            # docs.append(Document(page_content=text, metadata={"source": "local"}))
+            docs.append(
+                Document(
+                    page_content=text,
+                    metadata={
+                        "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "page": page_no,
+                        "title": re.sub(r'\W+', ' ', file_name),
+                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "description": text
+                    }
+                )
+            )
         # print("extract_html_from_doc", text, type(text))
         # sys.stdout.flush()
     elif extension == 'rtf':
         text = extract_text_from_rtf(file_path)
         if text.strip():
-            docs.append(Document(page_content=text, metadata={"source": "local"}))
+            # docs.append(Document(page_content=text, metadata={"source": "local"}))
+            docs.append(
+                Document(
+                    page_content=text,
+                    metadata={
+                        "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "page": page_no,
+                        "title": re.sub(r'\W+', ' ', file_name),
+                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "description": text
+                    }
+                )
+            )
         # print("extract_text_from_rtf", text)
         # sys.stdout.flush()
     elif extension == 'txt':
         text = extract_text_from_txt(file_path)
         if text.strip():
-            docs.append(Document(page_content=text, metadata={"source": "local"}))
+            # docs.append(Document(page_content=text, metadata={"source": "local"}))
+            docs.append(
+                Document(
+                    page_content=text,
+                    metadata={
+                        "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "page": page_no,
+                        "title": re.sub(r'\W+', ' ', file_name),
+                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "description": text
+                    }
+                )
+            )
         # print("extract_text_from_txt", text)
         # sys.stdout.flush()
     elif extension == 'html':
         text = extract_text_from_html(file_path)
         if text.strip():
-            docs.append(Document(page_content=text, metadata={"source": "local"}))
+            # docs.append(Document(page_content=text, metadata={"source": "local"}))
+            docs.append(
+                Document(
+                    page_content=text,
+                    metadata={
+                        "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "page": page_no,
+                        "title": re.sub(r'\W+', ' ', file_name),
+                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
+                        "description": text
+                    }
+                )
+            )
         # print("extract_text_from_html", text)
         # sys.stdout.flush()
     return docs
