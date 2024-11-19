@@ -259,6 +259,7 @@ class QdrantVectorStoreManager:
         
         # close the qdrant client
         qdrant.client.close()
+        # return qdrant
 
 
 class ArticleTextProcessing:

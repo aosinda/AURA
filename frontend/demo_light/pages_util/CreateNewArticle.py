@@ -1,3 +1,5 @@
+import pathlib
+
 import re
 
 from time import sleep
@@ -490,13 +492,14 @@ def create_new_article_page():
                     )
                 docs = []
                 if ext:
-                    uploaded_filename = uploaded_file.name
+                    uploaded_filename = uploaded_file.name.split('.')[0].strip()
                     uploaded_file_id = uploaded_file.file_id
                     in_memory_file = io.BytesIO()
                     file_content = uploaded_file.read()
                     in_memory_file.write(file_content)
                     in_memory_file.seek(0)
                     docs, store = handle_uploaded_file(in_memory_file, uploaded_file_id, uploaded_filename, ext)
+                    st.session_state["store"] = store
                 if docs:
                     user_input_text = " ".join([doc.page_content for doc in docs])
                 else:

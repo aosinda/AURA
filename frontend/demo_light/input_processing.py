@@ -312,8 +312,9 @@ def extract_text(file_path, file_id, file_name, extension):
                             "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
                             "page": page_no,
                             "title": re.sub(r'\W+', ' ', file_name),
-                            "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
-                            "description": page
+                            "url": "file://{}_page{}.{}".format(file_name, page_no, extension),
+                            "description": page,
+                            "file_id": file_id
                         }
                     )
                 )
@@ -337,8 +338,9 @@ def extract_text(file_path, file_id, file_name, extension):
                 doc.metadata.update(
                     {
                         "title": re.sub(r'\W+', ' ', file_name),
-                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
-                        "description": doc.page_content
+                        "url": "file://{}_page{}.{}".format(file_name, page_no, extension),
+                        "description": doc.page_content,
+                        "file_id": file_id
                     }
                 )
             # print("process_pdf", docs)
@@ -359,8 +361,9 @@ def extract_text(file_path, file_id, file_name, extension):
                         "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
                         "page": page_no,
                         "title": re.sub(r'\W+', ' ', file_name),
-                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
-                        "description": text
+                        "url": "file://{}.{}".format(file_name, extension),
+                        "description": text,
+                        "file_id": file_id
                     }
                 )
             )
@@ -380,8 +383,9 @@ def extract_text(file_path, file_id, file_name, extension):
                         "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
                         "page": page_no,
                         "title": re.sub(r'\W+', ' ', file_name),
-                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
-                        "description": text
+                        "url": "file://{}.{}".format(file_name, extension),
+                        "description": text,
+                        "file_id": file_id
                     }
                 )
             )
@@ -398,8 +402,9 @@ def extract_text(file_path, file_id, file_name, extension):
                         "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
                         "page": page_no,
                         "title": re.sub(r'\W+', ' ', file_name),
-                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
-                        "description": text
+                        "url": "file://{}.{}".format(file_name, extension),
+                        "description": text,
+                        "file_id": file_id
                     }
                 )
             )
@@ -416,8 +421,9 @@ def extract_text(file_path, file_id, file_name, extension):
                         "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
                         "page": page_no,
                         "title": re.sub(r'\W+', ' ', file_name),
-                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
-                        "description": text
+                        "url": "file://{}.{}".format(file_name, extension),
+                        "description": text,
+                        "file_id": file_id
                     }
                 )
             )
@@ -434,8 +440,9 @@ def extract_text(file_path, file_id, file_name, extension):
                         "source": "local_file_{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
                         "page": page_no,
                         "title": re.sub(r'\W+', ' ', file_name),
-                        "url": "file://{}_{}_{}.{}".format(file_name, file_id, page_no, extension),
-                        "description": text
+                        "url": "file://{}.{}".format(file_name, extension),
+                        "description": text,
+                        "file_id": file_id
                     }
                 )
             )

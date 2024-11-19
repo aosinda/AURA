@@ -18,7 +18,9 @@ import sys
 sys.path.append('../../')
 from knowledge_storm import STORMWikiRunnerArguments, STORMWikiRunner, STORMWikiLMConfigs
 from knowledge_storm.lm import OpenAIModel
-from knowledge_storm.rm import  BingSearch
+# from knowledge_storm.rm import BingSearch
+import rm
+from rm import BingSearch, VectorRM, VectorAndBingSearch
 from knowledge_storm.storm_wiki.modules.callback import BaseCallbackHandler
 from knowledge_storm.utils import truncate_filename
 from stoc import stoc
@@ -574,9 +576,19 @@ def set_storm_runner():
         retrieve_top_k=5
     )
 
-    rm = BingSearch(bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k)
+    # rm = BingSearch(bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k)
+    rm_vector_bing = VectorAndBingSearch(
+        bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k,
+        collection_name=st.secrets["collection_name"]
+    )
+    rm_vector_bing.init_online_vector_db(url=st.secrets["QDRANT_URL"], api_key=st.secrets['QUADRANT_API_KEY'])
 
-    runner = STORMWikiRunner(engine_args, llm_configs, rm)
+    # if args.vector_db_mode == 'offline':
+    #     rm_vector_bing.init_offline_vector_db(vector_store_path=args.offline_vector_db_dir)
+    # elif args.vector_db_mode == 'online':
+    #     rm_vector_bing.init_online_vector_db(url=args.online_vector_db_url, api_key=os.getenv('QDRANT_API_KEY'))
+
+    runner = STORMWikiRunner(engine_args, llm_configs, rm_vector_bing)
     st.session_state["runner"] = runner
 
 
