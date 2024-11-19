@@ -420,7 +420,7 @@ def generate_pdf(title, markdown_text, references=None, article_folder_path=None
     pdf = MarkdownPdf(toc_level=2)
     title = title.replace('_', ' ').title()
     pdf.meta["title"] = title
-    if article_folder_path and not(markdown_text or references):
+    if article_folder_path and not(markdown_text and references):
         article_data = DemoFileIOHelper.assemble_article_data(article_folder_path)
         if not references:
             references = article_data.get('citations', {})
