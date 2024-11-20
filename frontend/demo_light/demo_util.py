@@ -579,7 +579,7 @@ def set_storm_runner():
     # rm = BingSearch(bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k)
     rm_vector_bing = VectorAndBingSearch(
         bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k,
-        collection_name=st.secrets["collection_name"]
+        collection_name=st.secrets["collection_name"], uploaded_file_id=st.session_state["uploaded_file_id"]
     )
     rm_vector_bing.init_online_vector_db(url=st.secrets["QDRANT_URL"], api_key=st.secrets['QUADRANT_API_KEY'])
 

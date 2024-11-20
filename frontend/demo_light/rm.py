@@ -8,6 +8,7 @@ import requests
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import Qdrant
 from qdrant_client import QdrantClient
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 
 import utils
 from utils import WebPageHelper
@@ -315,7 +316,7 @@ class VectorAndBingSearch(dspy.Retrieve):
     def __init__(
             self, bing_search_api_key=None, is_valid_source: Callable = None,
                  min_char_count: int = 150, snippet_chunk_size: int = 1000, webpage_helper_max_threads=10,
-                 mkt='en-US', language='en', collection_name: str=None,
+                 mkt='en-US', language='en', collection_name: str=None, uploaded_file_id: str=None,
                  embedding_model: str = 'BAAI/bge-m3',
                  device: str = "mps",
                  k: int = 3, **kwargs
@@ -349,6 +350,18 @@ class VectorAndBingSearch(dspy.Retrieve):
             max_thread_num=webpage_helper_max_threads
         )
         self.usage = 0
+        if uploaded_file_id:
+            self.uploaded_file_id = uploaded_file_id
+        else:
+            self.uploaded_file_id = ""
+        self.filter_criteria = Filter(
+            must=[
+                FieldCondition(
+                    key="metadata.file_id",  # Metadata field
+                    match=MatchValue(value=self.uploaded_file_id)  # Match specific value
+                )
+            ]
+        )
 
         # If not None, is_valid_source shall be a function that takes a URL and returns a boolean.
         if is_valid_source:
@@ -480,15 +493,26 @@ class VectorAndBingSearch(dspy.Retrieve):
                         url_to_results[d['url']] = {'url': d['url'], 'title': d['name'], 'description': d['snippet']}
             except Exception as e:
                 logging.error(f'Error occurs when searching query {query}: {e}')
-            related_docs = self.qdrant.similarity_search_with_score(query, k=self.k)
-            for i in range(len(related_docs)):
-                doc = related_docs[i][0]
-                collected_results.append({
-                    'description': doc.metadata['description'],
-                    'snippets': [doc.page_content],
-                    'title': doc.metadata['title'],
-                    'url': doc.metadata['url'],
-                })
+            try:
+                related_docs = []
+                for i in range(0, 5):
+                    try:
+                        related_docs = self.qdrant.similarity_search_with_score(query, k=self.k, filter=self.filter_criteria)
+                        if related_docs:
+                            break
+                    except:
+                        print(f"Re-attempting to perform similarity search with score")
+                        continue
+                for i in range(len(related_docs)):
+                    doc = related_docs[i][0]
+                    collected_results.append({
+                        'description': doc.metadata['description'],
+                        'snippets': [doc.page_content],
+                        'title': doc.metadata['title'],
+                        'url': doc.metadata['url'],
+                    })
+            except Exception as e:
+                print(f"Unable to perform similarity search with score: {e!r}")
 
         valid_url_to_snippets = self.webpage_helper.urls_to_snippets(list(url_to_results.keys()))
         for url in valid_url_to_snippets:

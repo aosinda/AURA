@@ -18,6 +18,7 @@ import io
 import logging
 
 from utils import QdrantVectorStoreManager
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue, FilterSelector
 
 MIME_TYPE_EXTENSIONS = {
     "application/CDFV2": "doc",
@@ -46,12 +47,12 @@ def handle_uploaded_file(uploaded_file, file_id, file_name, file_extension):
 
         docs = extract_text(uploaded_file, file_id, file_name, file_extension)
         logging.info(f"Handling uploaded file: {uploaded_file}")
-        collection_name = "user_uploaded_docs"
-        vector_db_mode = "online"
+        # collection_name = "user_uploaded_docs"
+        # vector_db_mode = "online"
 
         store = QdrantVectorStoreManager.create_or_update_vector_store(
-            collection_name=collection_name,
-            vector_db_mode=vector_db_mode,
+            collection_name=st.secrets["collection_name"],
+            vector_db_mode=st.secrets["vector_db_mode"],
             documents=docs,
             url=os.getenv("QDRANT_URL"),
             qdrant_api_key=os.getenv("QUADRANT_API_KEY"),
@@ -494,6 +495,7 @@ def create_new_article_page():
                 if ext:
                     uploaded_filename = uploaded_file.name.split('.')[0].strip()
                     uploaded_file_id = uploaded_file.file_id
+                    st.session_state["uploaded_file_id"] = uploaded_file_id
                     in_memory_file = io.BytesIO()
                     file_content = uploaded_file.read()
                     in_memory_file.write(file_content)
@@ -770,6 +772,27 @@ def create_new_article_page():
                     remove_duplicate=False,
                 )
                 st.session_state["runner"].post_run()
+                filter_criteria = Filter(
+                    must=[
+                        FieldCondition(
+                            key="metadata.file_id",  # Metadata field
+                            match=MatchValue(value=st.session_state["uploaded_file_id"])  # Match specific value
+                        )
+                    ]
+                )
+                points_selector = FilterSelector(
+                    filter=filter_criteria
+                )
+                try:
+                    QdrantVectorStoreManager.create_or_delete_vector_store(
+                        collection_name=st.secrets["collection_name"],
+                        vector_db_mode=st.secrets["vector_db_mode"],
+                        url=os.getenv("QDRANT_URL"),
+                        qdrant_api_key=os.getenv("QUADRANT_API_KEY"),
+                        points_selector=points_selector
+                    )
+                except Exception as e:
+                    print(f"Unable to delete Documents from DB {e!r}")
                 st.session_state["page3_write_article_state"] = "prepare_to_show_result"
                 status.update(label="information synthesis complete!", state="complete")
             except Exception as e:

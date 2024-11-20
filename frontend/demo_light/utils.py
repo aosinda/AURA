@@ -124,6 +124,65 @@ class QdrantVectorStoreManager:
             return QdrantVectorStoreManager._check_create_collection(client=client, collection_name=collection_name, model=model)
         except Exception as e:
             raise ValueError(f"Error occurs when loading the vector store: {e}")
+
+    @staticmethod
+    def create_or_delete_vector_store(
+            collection_name: str,
+            vector_db_mode: str,
+            vector_store_path: str = None,
+            url: str = None,
+            qdrant_api_key: str = None,
+            embedding_model: str = 'BAAI/bge-m3',
+            device: str = "mps",
+            points_selector = None
+    ):
+        if collection_name is None:
+            raise ValueError("Please provide a collection name.")
+
+        device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
+        model_kwargs = {"device": device}
+        encode_kwargs = {"normalize_embeddings": True}
+        model = HuggingFaceEmbeddings(
+            model_name=embedding_model, model_kwargs=model_kwargs, encode_kwargs=encode_kwargs
+        )
+
+        qdrant = None
+        if vector_db_mode == 'online':
+            qdrant = QdrantVectorStoreManager._init_online_vector_db(
+                url=url,
+                api_key=qdrant_api_key,
+                collection_name=collection_name,
+                model=model,
+            )
+        elif vector_db_mode == 'offline':
+            qdrant = QdrantVectorStoreManager._init_offline_vector_db(
+                vector_store_path=vector_store_path, collection_name=collection_name, model=model
+            )
+        else:
+            raise ValueError("Invalid vector_db_mode. Please provide either 'online' or 'offline'.")
+        if qdrant is None:
+            raise ValueError("Qdrant client is not initialized.")
+
+        if points_selector:
+            for i in range(0, 5):
+                try:
+                    response = qdrant.client.delete(
+                        collection_name=collection_name,
+                        points_selector=points_selector
+                    )
+                    if response:
+                        print(f"Documents Deleted {response!r}")
+                        break
+                except Exception as e:
+                    print(f"Re-attempting to delete Documents  {e!r}")
+                    continue
+            else:
+                print(f"Unable to delete Documents from DB")
+        else:
+            print(f"Nothing to delete. No filter critiria provided")
+
+        # close the qdrant client
+        qdrant.client.close()
     
     @staticmethod
     def create_or_update_vector_store(
@@ -252,10 +311,17 @@ class QdrantVectorStoreManager:
         for i in tqdm(range(num_batches)):
             start_idx = i * batch_size
             end_idx = min((i + 1) * batch_size, len(split_documents))
-            qdrant.add_documents(
-                documents=split_documents[start_idx:end_idx],
-                batch_size=batch_size,
-            )
+            for i in range(0, 5):
+                try:
+                    qdrant.add_documents(
+                        documents=split_documents[start_idx:end_idx],
+                        batch_size=batch_size,
+                    )
+                    if True:
+                        break
+                except:
+                    print(f"Re-attempting to add Documents")
+                    continue
         
         # close the qdrant client
         qdrant.client.close()
