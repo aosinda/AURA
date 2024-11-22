@@ -132,7 +132,18 @@ class StormPersonaGenerator():
             List[str]: A list of persona descriptions, including the default 'Basic fact writer' persona
                 and up to `max_num_persona` additional personas generated based on the topic.
         """
-        personas = self.create_writer_with_persona(topic=topic)
+        # personas = self.create_writer_with_persona(topic=topic)
+        for i in range(0, 5):
+            try:
+                personas = self.create_writer_with_persona(topic=topic)
+                if len(personas.personas) >= max_num_persona:
+                    print(f"{max_num_persona} max_num_persona generated {personas.personas!r}")
+                    break
+                else:
+                    print(f"Re-attempting to generate {max_num_persona} max_num_persona {personas.personas!r}")
+            except:
+                print(f"Re-attempting to generate {max_num_persona} max_num_persona")
+                continue
         default_persona = 'Basic fact writer: Basic fact writer focusing on covering the most important facts about the topic.'
         considered_personas = [default_persona] + personas.personas[:max_num_persona]
         return considered_personas

@@ -499,6 +499,7 @@ class VectorAndBingSearch(dspy.Retrieve):
                     try:
                         related_docs = self.qdrant.similarity_search_with_score(query, k=self.k, filter=self.filter_criteria)
                         if related_docs:
+                            print(f"Documents after performing similarity search with score: {len(related_docs)!r}")
                             break
                     except:
                         print(f"Re-attempting to perform similarity search with score")
