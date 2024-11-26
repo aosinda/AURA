@@ -695,7 +695,10 @@ def create_new_article_page():
         with file_uploaded_placeholder.container():
             st.markdown(
                 f"""
-                    <h2 style='text-align: center; color: #06908F;'>Storyline Submitted</h2>
+                    <h2 style='text-align: center; color: #06908F;'>Creating your Research Report</h2>
+                    <p style='text-align: center; font-size: 16px;'>
+                        Curious about what your agents are doing? Click on the desired section and follow along.
+                    </p>
                 """,
                 unsafe_allow_html=True
             )
