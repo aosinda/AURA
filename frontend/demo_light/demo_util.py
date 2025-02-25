@@ -15,17 +15,23 @@ import re
 # If you install the source code instead of the `knowledge-storm` package,
 # Uncomment the following lines:
 import sys
-sys.path.append('../../')
-from knowledge_storm import STORMWikiRunnerArguments, STORMWikiRunner, STORMWikiLMConfigs
+
+sys.path.append("../../")
+from knowledge_storm import (
+    STORMWikiRunnerArguments,
+    STORMWikiRunner,
+    STORMWikiLMConfigs,
+)
 from knowledge_storm.lm import OpenAIModel
+
 # from knowledge_storm.rm import BingSearch
-import rm
-from rm import BingSearch, VectorRM, VectorAndBingSearch
+from rm import VectorAndYouSearch  # VectorAndBingSearch
 from knowledge_storm.storm_wiki.modules.callback import BaseCallbackHandler
 from knowledge_storm.utils import truncate_filename
 from stoc import stoc
 
-class DemoFileIOHelper():
+
+class DemoFileIOHelper:
     @staticmethod
     def read_structure_to_dict(articles_root_path):
         """
@@ -111,8 +117,10 @@ class DemoFileIOHelper():
             file_path (str): The path to the file.
             modification_time_string (str): The desired modification time in 'YYYY-MM-DD HH:MM:SS' format.
         """
-        california_tz = pytz.timezone('America/Los_Angeles')
-        modification_time = datetime.datetime.strptime(modification_time_string, '%Y-%m-%d %H:%M:%S')
+        california_tz = pytz.timezone("America/Los_Angeles")
+        modification_time = datetime.datetime.strptime(
+            modification_time_string, "%Y-%m-%d %H:%M:%S"
+        )
         modification_time = california_tz.localize(modification_time)
         modification_time_utc = modification_time.astimezone(datetime.timezone.utc)
         modification_timestamp = modification_time_utc.timestamp()
@@ -129,7 +137,7 @@ class DemoFileIOHelper():
         Returns:
             str: The latest file's modification time in 'YYYY-MM-DD HH:MM:SS' format.
         """
-        california_tz = pytz.timezone('America/Los_Angeles')
+        california_tz = pytz.timezone("America/Los_Angeles")
         latest_mod_time = None
 
         file_paths = []
@@ -142,17 +150,26 @@ class DemoFileIOHelper():
 
         for file_path in file_paths:
             modification_timestamp = os.path.getmtime(file_path)
-            modification_time_utc = datetime.datetime.utcfromtimestamp(modification_timestamp)
-            modification_time_utc = modification_time_utc.replace(tzinfo=datetime.timezone.utc)
-            modification_time_california = modification_time_utc.astimezone(california_tz)
+            modification_time_utc = datetime.datetime.utcfromtimestamp(
+                modification_timestamp
+            )
+            modification_time_utc = modification_time_utc.replace(
+                tzinfo=datetime.timezone.utc
+            )
+            modification_time_california = modification_time_utc.astimezone(
+                california_tz
+            )
 
-            if latest_mod_time is None or modification_time_california > latest_mod_time:
+            if (
+                latest_mod_time is None
+                or modification_time_california > latest_mod_time
+            ):
                 latest_mod_time = modification_time_california
 
         if latest_mod_time is not None:
-            return latest_mod_time.strftime('%Y-%m-%d %H:%M:%S')
+            return latest_mod_time.strftime("%Y-%m-%d %H:%M:%S")
         else:
-            return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
     def assemble_article_data(article_file_path_dict):
@@ -176,25 +193,41 @@ class DemoFileIOHelper():
                         if neither the raw nor polished article text exists in the
                         provided file paths.
         """
-        if "storm_gen_article.txt" in article_file_path_dict or "storm_gen_article_polished.txt" in article_file_path_dict:
-            full_article_name = "storm_gen_article_polished.txt" if "storm_gen_article_polished.txt" in article_file_path_dict else "storm_gen_article.txt"
+        if (
+            "storm_gen_article.txt" in article_file_path_dict
+            or "storm_gen_article_polished.txt" in article_file_path_dict
+        ):
+            full_article_name = (
+                "storm_gen_article_polished.txt"
+                if "storm_gen_article_polished.txt" in article_file_path_dict
+                else "storm_gen_article.txt"
+            )
             article_data["article"] = DemoTextProcessingHelper.parse(
-                DemoFileIOHelper.read_txt_file(article_file_path_dict[full_article_name])
+                DemoFileIOHelper.read_txt_file(
+                    article_file_path_dict[full_article_name]
+                )
             )
             if "url_to_info.json" in article_file_path_dict:
                 article_data["citations"] = _construct_citation_dict_from_search_result(
-                    DemoFileIOHelper.read_json_file(article_file_path_dict["url_to_info.json"]))
+                    DemoFileIOHelper.read_json_file(
+                        article_file_path_dict["url_to_info.json"]
+                    )
+                )
             if "conversation_log.json" in article_file_path_dict:
                 article_data["conversation_log"] = DemoFileIOHelper.read_json_file(
-                    article_file_path_dict["conversation_log.json"])
+                    article_file_path_dict["conversation_log.json"]
+                )
         return article_data
 
 
-class DemoTextProcessingHelper():
-
+class DemoTextProcessingHelper:
     @staticmethod
     def remove_citations(sent):
-        return re.sub(r"\[\d+", "", re.sub(r" \[\d+", "", sent)).replace(" |", "").replace("]", "")
+        return (
+            re.sub(r"\[\d+", "", re.sub(r" \[\d+", "", sent))
+            .replace(" |", "")
+            .replace("]", "")
+        )
 
     @staticmethod
     def parse_conversation_history(json_data):
@@ -204,43 +237,54 @@ class DemoTextProcessingHelper():
         """
         parsed_data = []
         for persona_conversation_data in json_data:
-            if ': ' in persona_conversation_data["perspective"]:
-                name, description = persona_conversation_data["perspective"].split(": ", 1)
-            elif '- ' in persona_conversation_data["perspective"]:
-                name, description = persona_conversation_data["perspective"].split("- ", 1)
+            if ": " in persona_conversation_data["perspective"]:
+                name, description = persona_conversation_data["perspective"].split(
+                    ": ", 1
+                )
+            elif "- " in persona_conversation_data["perspective"]:
+                name, description = persona_conversation_data["perspective"].split(
+                    "- ", 1
+                )
             else:
                 name, description = "", persona_conversation_data["perspective"]
             cur_conversation = []
             for dialogue_turn in persona_conversation_data["dlg_turns"]:
-                cur_conversation.append({"role": "user", "content": dialogue_turn["user_utterance"]})
                 cur_conversation.append(
-                    {"role": "assistant",
-                     "content": DemoTextProcessingHelper.remove_citations(dialogue_turn["agent_utterance"])})
+                    {"role": "user", "content": dialogue_turn["user_utterance"]}
+                )
+                cur_conversation.append(
+                    {
+                        "role": "assistant",
+                        "content": DemoTextProcessingHelper.remove_citations(
+                            dialogue_turn["agent_utterance"]
+                        ),
+                    }
+                )
             parsed_data.append((name, description, cur_conversation))
         return parsed_data
 
     @staticmethod
     def parse(text):
         regex = re.compile(r']:\s+"(.*?)"\s+http')
-        text = regex.sub(']: http', text)
+        text = regex.sub("]: http", text)
         return text
 
     @staticmethod
     def add_markdown_indentation(input_string):
-        lines = input_string.split('\n')
+        lines = input_string.split("\n")
         processed_lines = [""]
         for line in lines:
             num_hashes = 0
             for char in line:
-                if char == '#':
+                if char == "#":
                     num_hashes += 1
                 else:
                     break
             num_hashes -= 1
             num_spaces = 4 * num_hashes
-            new_line = ' ' * num_spaces + line
+            new_line = " " * num_spaces + line
             processed_lines.append(new_line)
-        return '\n'.join(processed_lines)
+        return "\n".join(processed_lines)
 
     @staticmethod
     def get_current_time_string():
@@ -250,13 +294,15 @@ class DemoTextProcessingHelper():
         Returns:
             str: The current California time in 'YYYY-MM-DD HH:MM:SS' format.
         """
-        california_tz = pytz.timezone('America/Los_Angeles')
+        california_tz = pytz.timezone("America/Los_Angeles")
         utc_now = datetime.datetime.now(datetime.timezone.utc)
         california_now = utc_now.astimezone(california_tz)
-        return california_now.strftime('%Y-%m-%d %H:%M:%S')
+        return california_now.strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
-    def compare_time_strings(time_string1, time_string2, time_format='%Y-%m-%d %H:%M:%S'):
+    def compare_time_strings(
+        time_string1, time_string2, time_format="%Y-%m-%d %H:%M:%S"
+    ):
         """
         Compares two time strings to determine if they represent the same point in time.
 
@@ -278,13 +324,13 @@ class DemoTextProcessingHelper():
     @staticmethod
     def add_inline_citation_link(article_text, citation_dict):
         # Regular expression to find citations like [i]
-        pattern = r'\[(\d+)\]'
+        pattern = r"\[(\d+)\]"
 
         # Function to replace each citation with its Markdown link
         def replace_with_link(match):
             i = match.group(1)
-            url = citation_dict.get(int(i), {}).get('url', '#')
-            return f'[[{i}]]({url})'
+            url = citation_dict.get(int(i), {}).get("url", "#")
+            return f"[[{i}]]({url})"
 
         # Replace all citations in the text with Markdown links
         return re.sub(pattern, replace_with_link, article_text)
@@ -297,26 +343,34 @@ class DemoTextProcessingHelper():
                 level = line.count("#")
                 title = line.strip("# ").strip()
                 anchor = title.lower().replace(" ", "-").replace(".", "")
-                toc.append(f"<li style='margin-left: {20 * (level - 1)}px;'><a href='#{anchor}'>{title}</a></li>")
+                toc.append(
+                    f"<li style='margin-left: {20 * (level - 1)}px;'><a href='#{anchor}'>{title}</a></li>"
+                )
         return "<ul>" + "".join(toc) + "</ul>"
 
     @staticmethod
     def construct_bibliography_from_url_to_info(url_to_info):
         bibliography_list = []
-        sorted_url_to_unified_index = dict(sorted(url_to_info['url_to_unified_index'].items(),
-                                                  key=lambda item: item[1]))
+        sorted_url_to_unified_index = dict(
+            sorted(
+                url_to_info["url_to_unified_index"].items(), key=lambda item: item[1]
+            )
+        )
         for url, index in sorted_url_to_unified_index.items():
-            title = url_to_info['url_to_info'][url]['title']
+            title = url_to_info["url_to_info"][url]["title"]
             bibliography_list.append(f"[{index}]: [{title}]({url})")
         bibliography_string = "\n\n".join(bibliography_list)
         return f"# References\n\n{bibliography_string}"
 
 
-class DemoUIHelper():
+class DemoUIHelper:
     def st_markdown_adjust_size(content, font_size=20):
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <span style='font-size: {font_size}px;'>{content}</span>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
     @staticmethod
     def get_article_card_UI_style(boarder_color="#9AD8E1"):
@@ -329,9 +383,9 @@ class DemoUIHelper():
                 "border": "1px solid #CCC",
                 "padding": "20px",
                 "border-radius": "5px",
-                #"border-left": f"0.5rem solid {boarder_color}",
+                # "border-left": f"0.5rem solid {boarder_color}",
                 "box-shadow": "0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15)",
-                "margin": "0px"
+                "margin": "0px",
             },
             "title": {
                 "white-space": "normal",
@@ -341,7 +395,7 @@ class DemoUIHelper():
                 "color": "rgb(49, 51, 63)",
                 "text-align": "left",
                 "width": "95%",
-                "font-weight": "normal"
+                "font-weight": "normal",
             },
             "text": {
                 "white-space": "normal",
@@ -350,11 +404,9 @@ class DemoUIHelper():
                 "font-size": "25px",
                 "color": "rgb(49, 51, 63)",
                 "text-align": "left",
-                "width": "95%"
+                "width": "95%",
             },
-            "filter": {
-                "background-color": "rgba(0, 0, 0, 0)"
-            }
+            "filter": {"background-color": "rgba(0, 0, 0, 0)"},
         }
 
     @staticmethod
@@ -378,7 +430,8 @@ class DemoUIHelper():
                     line-height: 1.5; /* Adjust this value as needed */
                 }
             </style>
-            """, unsafe_allow_html=True
+            """,
+            unsafe_allow_html=True,
         )
 
     @staticmethod
@@ -396,7 +449,7 @@ class DemoUIHelper():
             </head>
             <body>
                 <div class="title">
-                    <h1>{article_title.replace('_', ' ')}</h1>
+                    <h1>{article_title.replace("_", " ")}</h1>
                 </div>
                 <h2>Table of Contents</h2>
                 {DemoTextProcessingHelper.generate_html_toc(article_content)}
@@ -410,35 +463,42 @@ def _construct_citation_dict_from_search_result(search_results):
     if search_results is None:
         return None
     citation_dict = {}
-    for url, index in search_results['url_to_unified_index'].items():
-        citation_dict[index] = {'url': url,
-                                'title': search_results['url_to_info'][url]['title'],
-                                'snippets': search_results['url_to_info'][url]['snippets']}
+    for url, index in search_results["url_to_unified_index"].items():
+        citation_dict[index] = {
+            "url": url,
+            "title": search_results["url_to_info"][url]["title"],
+            "snippets": search_results["url_to_info"][url]["snippets"],
+        }
     return citation_dict
 
 
 def generate_pdf(title, markdown_text, references=None, article_folder_path=None):
     pdf_buffer = BytesIO()
     pdf = MarkdownPdf(toc_level=2)
-    title = title.replace('_', ' ').title()
+    title = title.replace("_", " ").title()
     pdf.meta["title"] = title
-    if article_folder_path and not(markdown_text and references):
+    if article_folder_path and not (markdown_text and references):
         article_data = DemoFileIOHelper.assemble_article_data(article_folder_path)
         if not references:
-            references = article_data.get('citations', {})
+            references = article_data.get("citations", {})
         if not markdown_text:
             markdown_text = article_data.get("article", "")
-            markdown_text = re.sub(r'(?:---)+', '', markdown_text)
+            markdown_text = re.sub(r"(?:---)+", "", markdown_text)
             markdown_text = markdown_text.splitlines()
-            markdown_text = "\n".join([line for line in markdown_text if line.strip() != "# summary"])
+            markdown_text = "\n".join(
+                [line for line in markdown_text if line.strip() != "# summary"]
+            )
     combined_content = f"# {title}\n\n{markdown_text}"
     # pdf.add_section(Section(markdown_text, toc=False))
     if references:
-        references_section = "\n\n".join(f"[{i}] {references[i]['title']}\n\n({references[i]['url']})" for i in sorted(references))
+        references_section = "\n\n".join(
+            f"[{i}] {references[i]['title']}\n\n({references[i]['url']})"
+            for i in sorted(references)
+        )
         combined_content += f"\n\n# References\n\n{references_section}"
     pdf.add_section(
         Section(combined_content, toc=True),
-        user_css="h1 {text-align:center;} p, li { line-height: 1.6; text-align: justify;}"
+        user_css="h1 {text-align:center;} p, li { line-height: 1.6; text-align: justify;}",
     )
     pdf.save(pdf_buffer)
     pdf_buffer.seek(0)
@@ -450,17 +510,23 @@ def get_base64_image(image_path):
         return base64.b64encode(img_file.read()).decode("utf-8")
 
 
-def _display_main_article_text(article_name, article_text, citation_dict, table_content_sidebar):
+def _display_main_article_text(
+    article_name, article_text, citation_dict, table_content_sidebar
+):
     # Post-process the generated article for better display.
     if "Write the lead section:" in article_text:
         article_text = article_text[
-                       article_text.find("Write the lead section:") + len("Write the lead section:"):]
-    if article_text and article_text[0] == '#':
-        article_text = '\n'.join(article_text.split('\n')[1:])
-    article_text = DemoTextProcessingHelper.add_inline_citation_link(article_text, citation_dict)
+            article_text.find("Write the lead section:")
+            + len("Write the lead section:") :
+        ]
+    if article_text and article_text[0] == "#":
+        article_text = "\n".join(article_text.split("\n")[1:])
+    article_text = DemoTextProcessingHelper.add_inline_citation_link(
+        article_text, citation_dict
+    )
     # '$' needs to be changed to '\$' to avoid being interpreted as LaTeX in st.markdown()
     article_text = article_text.replace("$", "\\$")
-    article_text = re.sub(r'(?:---)+', '', article_text)
+    article_text = re.sub(r"(?:---)+", "", article_text)
     stoc.from_markdown(article_text, table_content_sidebar, False)
     st.markdown(
         """
@@ -473,9 +539,9 @@ def _display_main_article_text(article_name, article_text, citation_dict, table_
         </div>
         """.format(
             pdf_data=generate_pdf(article_name, article_text, citation_dict),
-            generated_file=re.sub(r'\W+', '_', article_name)
+            generated_file=re.sub(r"\W+", "_", article_name),
         ),
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -484,13 +550,25 @@ def _display_references(citation_dict):
         reference_list = [f"reference [{i}]" for i in range(1, len(citation_dict) + 1)]
         selected_key = st.selectbox("Select a reference", reference_list)
         citation_val = citation_dict[reference_list.index(selected_key) + 1]
-        citation_val['title'] = citation_val['title'].replace("$", "\\$")
-        st.markdown(f"<span style='font-size: 16px;'>**Title:** {citation_val['title']}</span>", unsafe_allow_html=True)
-        st.markdown(f"<span style='font-size: 16px;'>**Url:** {citation_val['url']}</span>", unsafe_allow_html=True)
-        snippets = '\n\n'.join(citation_val['snippets']).replace("$", "\\$")
-        st.markdown(f"<span style='font-size: 16px; !important'>**Highlights:**\n\n {snippets}</span>", unsafe_allow_html=True)
+        citation_val["title"] = citation_val["title"].replace("$", "\\$")
+        st.markdown(
+            f"<span style='font-size: 16px;'>**Title:** {citation_val['title']}</span>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f"<span style='font-size: 16px;'>**Url:** {citation_val['url']}</span>",
+            unsafe_allow_html=True,
+        )
+        snippets = "\n\n".join(citation_val["snippets"]).replace("$", "\\$")
+        st.markdown(
+            f"<span style='font-size: 16px; !important'>**Highlights:**\n\n {snippets}</span>",
+            unsafe_allow_html=True,
+        )
     else:
-        st.markdown("<span style='font-size: 16px;'>**No references available**</span>", unsafe_allow_html=True)
+        st.markdown(
+            "<span style='font-size: 16px;'>**No references available**</span>",
+            unsafe_allow_html=True,
+        )
 
 
 def _display_persona_conversations(conversation_log):
@@ -498,7 +576,9 @@ def _display_persona_conversations(conversation_log):
     Display persona conversation in dialogue UI
     """
     # get personas list as (persona_name, persona_description, dialogue turns list) tuple
-    parsed_conversation_history = DemoTextProcessingHelper.parse_conversation_history(conversation_log)
+    parsed_conversation_history = DemoTextProcessingHelper.parse_conversation_history(
+        conversation_log
+    )
     # construct tabs for each persona conversation
     persona_tabs = st.tabs([name for (name, _, _) in parsed_conversation_history])
     for idx, persona_tab in enumerate(persona_tabs):
@@ -507,7 +587,7 @@ def _display_persona_conversations(conversation_log):
             st.info(parsed_conversation_history[idx][1])
             # show user / agent utterance in dialogue UI
             for message in parsed_conversation_history[idx][2]:
-                message['content'] = message['content'].replace("$", "\\$")
+                message["content"] = message["content"].replace("$", "\\$")
                 with st.chat_message(message["role"]):
                     if message["role"] == "user":
                         st.markdown(f"**{message['content']}**")
@@ -515,17 +595,26 @@ def _display_persona_conversations(conversation_log):
                         st.markdown(message["content"])
 
 
-def _display_main_article(selected_article_file_path_dict, selected_article_name, show_reference=True, show_conversation=True):
-    article_data = DemoFileIOHelper.assemble_article_data(selected_article_file_path_dict)
+def _display_main_article(
+    selected_article_file_path_dict,
+    selected_article_name,
+    show_reference=True,
+    show_conversation=True,
+):
+    article_data = DemoFileIOHelper.assemble_article_data(
+        selected_article_file_path_dict
+    )
     article_text = article_data.get("article", "")
 
     with st.container():
-        table_content_sidebar = st.sidebar.expander("**Table of contents**", expanded=True)
+        table_content_sidebar = st.sidebar.expander(
+            "**Table of contents**", expanded=True
+        )
         _display_main_article_text(
             article_name=selected_article_name,
             article_text=article_data.get("article", ""),
             citation_dict=article_data.get("citations", {}),
-            table_content_sidebar=table_content_sidebar
+            table_content_sidebar=table_content_sidebar,
         )
 
     # display reference panel
@@ -537,8 +626,11 @@ def _display_main_article(selected_article_file_path_dict, selected_article_name
     # display conversation history
     if show_conversation and "conversation_log" in article_data:
         with st.expander(
-                "Click here to explore how AURA’s LLM-powered agents brainstormed and shaped your research report"):
-            _display_persona_conversations(conversation_log=article_data.get("conversation_log", {}))
+            "Click here to explore how AURA’s LLM-powered agents brainstormed and shaped your research report"
+        ):
+            _display_persona_conversations(
+                conversation_log=article_data.get("conversation_log", {})
+            )
 
 
 def get_demo_dir():
@@ -549,7 +641,11 @@ def clear_other_page_session_state(page_index: Optional[int]):
     if page_index is None:
         keys_to_delete = [key for key in st.session_state if key.startswith("page")]
     else:
-        keys_to_delete = [key for key in st.session_state if key.startswith("page") and f"page{page_index}" not in key]
+        keys_to_delete = [
+            key
+            for key in st.session_state
+            if key.startswith("page") and f"page{page_index}" not in key
+        ]
     for key in set(keys_to_delete):
         del st.session_state[key]
 
@@ -561,11 +657,17 @@ def set_storm_runner():
 
     # configure STORM runner
     llm_configs = STORMWikiLMConfigs()
-    llm_configs.init_openai_model(openai_api_key=st.secrets['OPENAI_API_KEY'], openai_type='openai')
+    llm_configs.init_openai_model(
+        openai_api_key=st.secrets["OPENAI_API_KEY"], openai_type="openai"
+    )
     llm_configs.set_question_asker_lm(
         OpenAIModel(
-            model='gpt-4o', api_key=st.secrets['OPENAI_API_KEY'],
-            api_provider='openai', max_tokens=500, temperature=1.0, top_p=0.9
+            model="gpt-4o",
+            api_key=st.secrets["OPENAI_API_KEY"],
+            api_provider="openai",
+            max_tokens=500,
+            temperature=1.0,
+            top_p=0.9,
         )
     )
     engine_args = STORMWikiRunnerArguments(
@@ -573,15 +675,19 @@ def set_storm_runner():
         max_conv_turn=3,
         max_perspective=3,
         search_top_k=3,
-        retrieve_top_k=5
+        retrieve_top_k=5,
     )
 
     # rm = BingSearch(bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k)
-    rm_vector_bing = VectorAndBingSearch(
-        bing_search_api_key=st.secrets['BING_SEARCH_API_KEY'], k=engine_args.search_top_k,
-        collection_name=st.secrets["collection_name"], uploaded_file_id=st.session_state["uploaded_file_id"]
+    rm_vector_bing = VectorAndYouSearch(
+        bing_search_api_key=st.secrets["YDC_API_KEY"],
+        k=engine_args.search_top_k,
+        collection_name=st.secrets["collection_name"],
+        uploaded_file_id=st.session_state["uploaded_file_id"],
     )
-    rm_vector_bing.init_online_vector_db(url=st.secrets["QDRANT_URL"], api_key=st.secrets['QUADRANT_API_KEY'])
+    rm_vector_bing.init_online_vector_db(
+        url=st.secrets["QDRANT_URL"], api_key=st.secrets["QUADRANT_API_KEY"]
+    )
 
     # if args.vector_db_mode == 'offline':
     #     rm_vector_bing.init_offline_vector_db(vector_store_path=args.offline_vector_db_dir)
@@ -593,11 +699,16 @@ def set_storm_runner():
 
 
 def display_article_page(
-        selected_article_name, selected_article_file_path_dict, show_title=True, show_main_article=True
+    selected_article_name,
+    selected_article_file_path_dict,
+    show_title=True,
+    show_main_article=True,
 ):
     # Use the title from the storyline stored in session state if available
-    article_title = st.session_state.get("selected_storyline_title", selected_article_name)
-    
+    article_title = st.session_state.get(
+        "selected_storyline_title", selected_article_name
+    )
+
     if show_title:
         st.markdown(
             f"""<h2 style='
@@ -609,10 +720,10 @@ def display_article_page(
                 border-radius: 12px;
                 box-shadow: 8px 4px 15px rgba(89, 185, 185, 0.7);
             '>
-                {selected_article_name.replace('_', ' ').replace('*', '').title()}
+                {selected_article_name.replace("_", " ").replace("*", "").title()}
             </h2>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
     if show_main_article:
@@ -624,20 +735,25 @@ class StreamlitCallbackHandler(BaseCallbackHandler):
         self.status_container = status_container
 
     def on_identify_perspective_start(self, **kwargs):
-        self.status_container.info('Start identifying different perspectives for researching the topic.')
+        self.status_container.info(
+            "Start identifying different perspectives for researching the topic."
+        )
 
     def on_identify_perspective_end(self, perspectives: list[str], **kwargs):
         perspective_list = "\n- ".join(perspectives)
-        self.status_container.success(f'Finish identifying perspectives. Will now start gathering information'
-                                      f' from the following perspectives:\n- {perspective_list}')
+        self.status_container.success(
+            f"Finish identifying perspectives. Will now start gathering information"
+            f" from the following perspectives:\n- {perspective_list}"
+        )
 
     def on_information_gathering_start(self, **kwargs):
-        self.status_container.info('Start browsing the Internet.')
+        self.status_container.info("Start browsing the Internet.")
 
     def on_dialogue_turn_end(self, dlg_turn, **kwargs):
         urls = list(set([r.url for r in dlg_turn.search_results]))
         for url in urls:
-            self.status_container.markdown(f"""
+            self.status_container.markdown(
+                f"""
                     <style>
                     .small-font {{
                         font-size: 14px;
@@ -646,16 +762,22 @@ class StreamlitCallbackHandler(BaseCallbackHandler):
                     }}
                     </style>
                     <div class="small-font">Finish browsing <a href="{url}" class="small-font" target="_blank">{url}</a>.</div>
-                    """, unsafe_allow_html=True)
+                    """,
+                unsafe_allow_html=True,
+            )
 
     def on_information_gathering_end(self, **kwargs):
-        self.status_container.success('Finish collecting information.')
+        self.status_container.success("Finish collecting information.")
 
     def on_information_organization_start(self, **kwargs):
-        self.status_container.info('Start organizing information into a hierarchical outline.')
+        self.status_container.info(
+            "Start organizing information into a hierarchical outline."
+        )
 
     def on_direct_outline_generation_end(self, outline: str, **kwargs):
-        self.status_container.success(f'Finish leveraging the internal knowledge of the large language model.')
+        self.status_container.success(
+            f"Finish leveraging the internal knowledge of the large language model."
+        )
 
     def on_outline_refinement_end(self, outline: str, **kwargs):
-        self.status_container.success(f'Finish leveraging the collected information.')
+        self.status_container.success(f"Finish leveraging the collected information.")
