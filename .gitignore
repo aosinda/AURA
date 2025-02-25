@@ -25,3 +25,6 @@ secrets.toml
 */assertion.log
 *results/
 .venv/
+
+# Report files
+frontend/demo_light/DEMO_WORKING_DIR/
